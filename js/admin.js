@@ -47,6 +47,7 @@
       const rows = [];
       ((APP_CONFIG.adminEmails) || []).forEach(e => rows.push({ email: e.toLowerCase(), role: "owner" }));
       qs.forEach(d => rows.push(Object.assign({ email: d.id }, d.data())));
+      staffNow = new Set(qs.docs.map(d => d.id));
       const order = { owner: 0, admin: 1, instructor: 2 };
       rows.sort((a, b) => order[a.role] - order[b.role] || a.email.localeCompare(b.email));
       const tb = $("staffRows"); tb.replaceChildren();
@@ -79,6 +80,38 @@
     if (!confirm("Remove " + r.email + "? They'll no longer be able to " + (r.role === "admin" ? "administer the game or " : "") + "start sessions.")) return;
     try { await db.collection("live_staff").doc(r.email).delete(); $("staffMsg").textContent = "Removed " + r.email + "."; }
     catch (err) { $("staffMsg").textContent = "Couldn't remove " + r.email + ": " + (err.message || err); }
+  }
+
+  // ---------- bulk import ----------
+  let bulkNew = [], staffNow = new Set();
+  const EMAIL_RE = /[A-Za-z0-9._%+'-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
+  function bulkCheck() {
+    const raw = $("bulkText").value, rep = $("bulkReport"); rep.replaceChildren();
+    const found = [...new Set((raw.match(EMAIL_RE) || []).map(e => e.toLowerCase().replace(/^[.'-]+|[.'-]+$/g, "")))];
+    // tokens with an @ that didn't parse as an address
+    const bad = [...new Set(raw.split(/[\s,;"<>()\[\]]+/).filter(tok => tok.includes("@") && !/^[A-Za-z0-9._%+'-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(tok)))];
+    const owners = (APP_CONFIG.adminEmails || []).map(e => e.toLowerCase());
+    bulkNew = found.filter(e => !staffNow.has(e) && !owners.includes(e));
+    const already = found.length - bulkNew.length;
+    rep.append(el("p", "bulkline", found.length + " addresses found: " + bulkNew.length + " new, " + already + " already listed."));
+    if (bad.length) { rep.append(el("p", "bulkline", bad.length + " entries don't look like email addresses and will be skipped:"), el("p", "bulkbad", bad.slice(0, 50).join("  ·  ") + (bad.length > 50 ? "  · …" : ""))); }
+    $("bulkAdd").disabled = !bulkNew.length;
+    $("bulkAdd").textContent = bulkNew.length ? "Add " + bulkNew.length + " instructor" + (bulkNew.length > 1 ? "s" : "") : "Add instructors";
+  }
+  async function bulkAdd() {
+    const list = bulkNew.slice(), rep = $("bulkReport"), btn = $("bulkAdd");
+    if (!list.length) return;
+    btn.disabled = true; $("bulkCheck").disabled = true;
+    const prog = el("p", "bulkline"); rep.appendChild(prog);
+    let done = 0, failed = [];
+    for (let i = 0; i < list.length; i += 200) {
+      const chunk = list.slice(i, i + 200), b = db.batch();
+      chunk.forEach(e => b.set(db.collection("live_staff").doc(e), { role: "instructor", addedBy: me.email.toLowerCase(), addedAt: firebase.firestore.FieldValue.serverTimestamp() }));
+      try { await b.commit(); done += chunk.length; } catch (err) { failed = failed.concat(chunk); }
+      prog.textContent = "Added " + done + " of " + list.length + "…";
+    }
+    prog.textContent = "Done: added " + done + " instructor" + (done === 1 ? "" : "s") + "." + (failed.length ? " " + failed.length + " couldn't be added; check them and try again." : "");
+    bulkNew = []; btn.textContent = "Add instructors"; $("bulkCheck").disabled = false;
   }
 
   // ---------- open sessions ----------
@@ -203,6 +236,10 @@
   document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
     $("addForm").addEventListener("submit", addStaff);
+    $("bulkCheck").addEventListener("click", bulkCheck);
+    $("bulkAdd").addEventListener("click", bulkAdd);
+    $("bulkText").addEventListener("input", () => { $("bulkAdd").disabled = true; });
+    $("bulkFile").addEventListener("change", e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { $("bulkText").value = r.result; bulkCheck(); }; r.readAsText(f); e.target.value = ""; });   // reset so choosing the same file again still works
     $("signOut").addEventListener("click", () => StaffAuth.signOut());
     ["fRole", "fCountry", "fFrom", "fTo"].forEach(id => $(id).addEventListener("change", renderResults));
     $("reload").addEventListener("click", loadResults);

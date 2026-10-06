@@ -58,6 +58,11 @@
   td.diag{background:#e7f5ee;font-weight:700}
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .note{font-size:14px;color:var(--ink-muted);margin:8px 0 0}
+  .bulk{border:1px solid var(--mist);border-radius:var(--radius-md);padding:10px 14px;margin:6px 0 14px}
+  .bulk summary{cursor:pointer}
+  .bulk textarea{width:100%;box-sizing:border-box;font:inherit;font-size:15px;padding:10px;border:2px solid var(--mist);border-radius:var(--radius-md);margin-top:8px}
+  .bulkline{margin:6px 0;font-weight:600}
+  .bulkbad{font-size:14px;color:var(--red-deep);word-break:break-all}
   @media (max-width:820px){.kpis{grid-template-columns:1fr 1fr}.cols{grid-template-columns:1fr}}
 </style>
 </head>
@@ -84,6 +89,14 @@
             <button class="btn" type="submit">Add</button>
           </form>
           <p class="msg" id="staffMsg"></p>
+          <details class="bulk" id="bulk">
+            <summary><b>Add many instructors at once</b> <span class="muted">(text or CSV file, or paste)</span></summary>
+            <p class="note">Upload a file, or paste addresses below. Any layout works: one per line, separated by commas, or a column of a spreadsheet exported as CSV. Everything that looks like an email address is picked up. New addresses are added as instructors; people already listed keep their current role.</p>
+            <div class="addform"><input type="file" id="bulkFile" accept=".txt,.csv,text/plain,text/csv"></div>
+            <textarea id="bulkText" rows="6" placeholder="pat@clinic.org&#10;lee@vetschool.edu, sam@hospital.com"></textarea>
+            <div class="addform"><button class="btn ghost" type="button" id="bulkCheck">Check the list</button><button class="btn" type="button" id="bulkAdd" disabled>Add instructors</button></div>
+            <div id="bulkReport"></div>
+          </details>
           <table><thead><tr><th>Email</th><th>Role</th><th>Added by</th><th>Added</th><th></th></tr></thead><tbody id="staffRows"></tbody></table>
           <p class="note">Instructors can start sessions from the projector page. Administrators can also manage instructors, close sessions and see the research results. Only the owner can add or remove administrators. People sign in with Google or an emailed link using the exact address listed here.</p>
         </div>
@@ -139,6 +152,6 @@
   <script src="js/config.js?v=2026-10-06b"></script>
   <script src="js/live-rhythms.js?v=2026-10-06b"></script>
   <script src="js/staff-auth.js?v=2026-10-06b"></script>
-  <script src="js/admin.js?v=2026-10-06b"></script>
+  <script src="js/admin.js?v=2026-10-06d"></script>
 </body>
 </html>

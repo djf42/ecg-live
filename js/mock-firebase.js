@@ -69,9 +69,21 @@
     const snaps = keys.map(docSnap);
     return { empty: !keys.length, size: keys.length, docs: snaps, forEach: fn => snaps.forEach(fn), docChanges: () => changes, _map: map, _changed: !prev || changes.length > 0 };
   }
+  // a batch is applied in one go (one read, one save, one notification), like Firestore's atomic batches
   function batch() {
     const ops = [];
-    return { set(r, d) { ops.push(() => r.set(d)); }, update(r, d) { ops.push(() => r.update(d)); }, delete(r) { ops.push(() => r.delete()); }, commit: () => Promise.all(ops.map(f => f())) };
+    return {
+      set(r, d) { ops.push(["set", r.path, d]); }, update(r, d) { ops.push(["update", r.path, d]); }, delete(r) { ops.push(["delete", r.path]); },
+      commit() {
+        const db = load();
+        for (const [op, path, d] of ops) {
+          if (op === "set") { const bad = checkRules(path, d, db); if (bad) return Promise.reject(new Error("permission-denied: " + bad)); db[path] = dehydrate(d); }
+          else if (op === "update") { if (!db[path]) return Promise.reject(new Error("no document")); db[path] = Object.assign(db[path], dehydrate(d)); }
+          else delete db[path];
+        }
+        save(db); changed(); return Promise.resolve();
+      }
+    };
   }
   const authListeners = [];
   const AUTH = {
