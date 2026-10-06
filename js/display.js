@@ -243,7 +243,7 @@
     const base = location.origin + location.pathname.replace(/[^/]*$/, ""), url = base + "join.html?code=" + S.code;
     $("joinUrl").textContent = (base + "join.html").replace(/^https?:\/\//, "");
     const q = $("qr");
-    $("protoNote").textContent = LIVE ? "Learners can join any time; late joiners start at 0 points." : "Demo mode: the class here is simulated. On GitHub with Firebase, learners join from their phones.";
+    $("protoNote").textContent = LIVE ? "You can join at any time." : "Demo mode: the class here is simulated.";
     if (q.dataset.code !== S.code) {
       q.dataset.code = S.code; q.replaceChildren();
       if (window.QRCode) new QRCode(q, { text: url, width: 360, height: 360, colorDark: "#022033", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
@@ -257,7 +257,7 @@
     const p = S.phase, rd = round();
     if (p === "ready") {
       box.append(el("p", "eyebrow", "Rhythm " + (S.i + 1) + " of " + R.length), el("h2", null, "Get ready"),
-                 el("p", "big muted", "Press Start when the class is watching. Phones light up the moment compressions stop."));
+                 el("p", "big muted", "The answer buttons appear on your phone when compressions stop."));
     } else if (p === "compress") {
       box.append(el("p", "eyebrow", "Rhythm " + (S.i + 1) + " of " + R.length), el("h2", null, "Compressions"), el("p", "big muted", "Watch the monitor."));
     } else if (p === "answer" || p === "closed") {
@@ -266,7 +266,7 @@
       box.append(el("p", "eyebrow", p === "answer" ? "Answer on your phone" : "Time's up"), cd);
       const bar = el("div", "abar"); const fill = el("i"); fill.style.width = (tot ? n / tot * 100 : 0) + "%"; bar.appendChild(fill);
       box.append(el("p", "acount", n + " of " + tot + " answered"), bar);
-      if (p === "closed") box.append(el("p", "muted", "Press Reveal to show how the room answered."));
+
       tickCountdown();
     } else if (p === "results" || p === "algo" || p === "answer2") {
       const r = rhythm(), tot = Math.max(1, rd.answers.length), showAns = p === "answer2";
@@ -283,8 +283,8 @@
       box.appendChild(chart);
       if (!showAns) {
         box.append(el("p", "muted small", rd.answers.length + " of " + S.players.length + " answered"));
-        if (p === "results") box.append(el("p", "big muted", "Work through the algorithm together before revealing the answer."));
-        if (p === "algo") box.append(el("p", "big muted", ALG.prompt(r.cat, S.algoStep)));
+        // during the algorithm, the room sees the question it's working on
+        if (p === "algo") { const q = ALG.question(r.cat, S.algoStep); if (q) box.append(el("p", "eyebrow", "The question"), el("p", "question", q)); }
       } else {
         const right = rd.answers.filter(a => a.correct).length;
         box.append(el("p", "verdict", "Correct: " + catLabel(r.cat)), el("p", "detail", r.detail), el("p", "teach", r.teach),
@@ -382,13 +382,12 @@
       });
       return o + "</svg>";
     }
-    // what the instructor asks the room at each step
-    function prompt(cat, k) {
-      const path = PATH[cat], cur = N[path[k - 1]];
-      if (cur.cat) return "That's the diagnosis. Press Show the answer to confirm it.";
-      return "Ask the room: " + cur.lines.join(" ") + " When the group agrees, press Next step.";
+    // the question the room is discussing at this step (none once the diagnosis box appears)
+    function question(cat, k) {
+      const cur = N[PATH[cat][k - 1]];
+      return cur.cat ? "" : cur.lines.join(" ");
     }
-    return { svg, prompt, PATH };
+    return { svg, question, PATH };
   })();
 
   // ---------- scene ----------
