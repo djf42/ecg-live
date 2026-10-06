@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ECG Rhythm Challenge Live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link rel="stylesheet" href="css/brand.css?v=2026-10-06a">
+<style>
+/* ---------- projected display ---------- */
+html,body{height:100%}
+body{margin:0;background:#eef4f7;color:var(--ink);overflow:hidden}
+body::before,body::after{display:none}
+.hidden{display:none !important}
+.bar{display:flex;align-items:center;gap:14px;background:var(--navy);color:#fff;padding:10px 22px;height:64px;box-sizing:border-box}
+.bar img{height:38px;background:#fff;border-radius:8px;padding:3px 6px}
+.bar .title{font-family:var(--display);font-weight:800;font-size:22px;white-space:nowrap}
+.bar .pill{background:rgba(255,255,255,.12);border-radius:var(--radius-pill);padding:5px 14px;font-weight:700;font-size:16px;white-space:nowrap}
+.bar .pill b{color:var(--sky);font-family:var(--display);letter-spacing:.08em}
+.bar .spacer{flex:1}
+.bar .btn{font-size:16px;padding:9px 16px;white-space:nowrap}
+.bar .pill{font-size:15px;padding:5px 12px}
+@media (max-width:1280px){.bar .title{display:none}}
+.bar .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.5)}
+.bar .btn:disabled{background:rgba(255,255,255,.18);color:rgba(255,255,255,.7);border-color:transparent}
+.view{height:calc(100% - 64px);box-sizing:border-box;padding:18px 22px}
+/* lobby */
+#lobby{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:28px;align-items:start}
+.joincard{background:#fff;border-radius:var(--radius-lg);padding:26px;text-align:center;box-shadow:var(--shadow)}
+.joincard h1{margin:0 0 6px;font-size:34px}
+.qrbox{display:inline-block;padding:14px;background:#fff;border:3px solid var(--navy);border-radius:var(--radius-md);margin:10px 0}
+.qrbox img,.qrbox canvas{display:block;width:min(36vh,360px) !important;height:min(36vh,360px) !important}
+.qrfallback{width:min(36vh,360px);height:min(36vh,360px);display:grid;place-items:center;background:var(--ice);color:var(--navy);font-weight:700}
+.codebig{font-family:var(--display);font-weight:800;font-size:56px;letter-spacing:.18em;color:var(--navy);margin:4px 0}
+.joinurl{font-size:17px;color:var(--ink-muted)}
+.namescard{background:#fff;border-radius:var(--radius-lg);padding:22px 24px;box-shadow:var(--shadow);min-height:60vh}
+.namescard h2{margin:0 0 4px}
+.names{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.namechip{background:var(--ice);color:var(--navy);font-weight:700;font-size:20px;padding:8px 16px;border-radius:var(--radius-pill);animation:pop .35s cubic-bezier(.3,1.6,.6,1)}
+@keyframes pop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+.protonote{margin-top:16px;font-size:15px;color:var(--ink-muted)}
+/* stage */
+#stage{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(330px,1fr);gap:18px}
+.left{display:flex;flex-direction:column;gap:12px;min-height:0}
+.scene{position:relative;background:var(--ice);border-radius:var(--radius-md);overflow:hidden}
+.scene svg{display:block;width:100%;height:auto;max-height:44vh}
+.phasetag{position:absolute;left:14px;top:12px;background:var(--navy);color:#fff;font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:15px;padding:6px 14px;border-radius:var(--radius-pill)}
+.compressing .phasetag{background:var(--red)}
+@keyframes push{0%,100%{transform:translateY(0)}45%{transform:translateY(9px)}}
+@keyframes squash{0%,100%{transform:scaleY(1)}45%{transform:scaleY(.88)}}
+.compressing .pusher{animation:push .545s ease-in-out infinite}
+.compressing .chest{animation:squash .545s ease-in-out infinite}
+.chest{transform-box:fill-box;transform-origin:50% 100%}
+#bag{transform-box:fill-box;transform-origin:center}
+#bag.squeeze{animation:bagsq 1s ease-in-out}
+@keyframes bagsq{0%{transform:scale(1)}30%{transform:scale(.6)}100%{transform:scale(1)}}
+.bubble{opacity:0;transform:scale(.6);transform-box:fill-box;transform-origin:15% 100%;transition:opacity .18s,transform .22s cubic-bezier(.3,1.6,.6,1)}
+.bubble.show{opacity:1;transform:scale(1)}
+.mon{background:var(--navy);border-radius:var(--radius-md);overflow:hidden;flex:1;min-height:0;display:flex;flex-direction:column}
+.mrow{display:flex;position:relative}
+.mrow + .mrow{border-top:1px solid rgba(132,209,245,.25)}
+.ecgrow{flex:1.7;min-height:120px}.co2row{flex:1;min-height:80px}
+.mcanvas{position:relative;flex:1;min-width:0}
+.mcanvas canvas{position:absolute;inset:0;width:100%;height:100%}
+.mval{flex:0 0 120px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-left:1px solid rgba(132,209,245,.3);color:#fff}
+.mval small{font-size:15px;font-weight:700;letter-spacing:.12em;color:var(--sky)}
+.mval b{font-family:var(--display);font-weight:800;font-size:52px;line-height:1;font-variant-numeric:tabular-nums}
+.mval em{font-style:normal;font-size:13px;color:rgba(255,255,255,.6)}
+#co2Box small{color:#f2b134}
+#algoArea{background:#fff;border-radius:var(--radius-md);padding:12px 16px}
+#algoArea .algo-title{font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--navy);margin:0 0 4px}
+#algoArea svg{display:block;max-height:44vh;width:auto;max-width:100%;margin:0 auto}
+#algoArea .algo{margin:0;border:0;padding:0}
+#algoArea .algo-chart svg{max-height:42vh;width:auto;max-width:100%;margin:0 auto}
+#algoArea .algo-hint{display:none}
+/* side panel */
+.side{background:#fff;border-radius:var(--radius-lg);padding:22px 24px;box-shadow:var(--shadow);overflow:auto;display:flex;flex-direction:column}
+.side h2{font-size:40px;margin:0 0 10px}
+.side .big{font-size:22px;line-height:1.4}
+.countdown{font-family:var(--display);font-weight:800;font-size:min(24vh,190px);line-height:1;color:var(--navy);text-align:center;margin:6px 0 10px;font-variant-numeric:tabular-nums}
+.countdown.low{color:var(--red)}
+.acount{font-size:26px;font-weight:700;text-align:center;margin:6px 0}
+.abar{height:14px;background:var(--mist);border-radius:7px;overflow:hidden}
+.abar i{display:block;height:100%;background:var(--navy);transition:width .3s}
+.chart{display:flex;flex-direction:column;gap:10px;margin:8px 0 14px}
+.crow,.hardest li{display:grid;grid-template-columns:150px 1fr 64px;align-items:center;gap:10px;font-size:20px;font-weight:700}
+.ctrack{height:30px;background:var(--mist);border-radius:8px;overflow:hidden}
+.ctrack i{display:block;height:100%;background:#9fb1bd;border-radius:8px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.crow.ok .ctrack i{background:#1f7a4d}
+.crow.ok .clab::after{content:" ✓";color:#1f7a4d}
+.cval{text-align:right;font-variant-numeric:tabular-nums}
+.verdict{font-family:var(--display);font-weight:800;font-size:28px;color:#1f7a4d;margin:4px 0 2px}
+.detail{font-weight:600;margin:0 0 8px}
+.teach{font-size:19px;line-height:1.45;background:var(--ice);border-radius:var(--radius-md);padding:12px 14px;margin:0 0 8px}
+.small{font-size:15px}
+.board{list-style:none;margin:6px 0 0;padding:0}
+.board li,.finallist li{display:grid;grid-template-columns:44px 1fr 70px 90px 24px;align-items:center;gap:8px;padding:9px 6px;border-bottom:1px solid var(--mist);font-size:21px}
+.board .rk,.finallist .rk{font-family:var(--display);font-weight:800;color:var(--ink-muted)}
+.board li:nth-child(-n+3) .rk{color:var(--red)}
+.board .nm,.finallist .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.board .last{color:#1f7a4d;font-weight:700;text-align:right}
+.board .last.zero{color:var(--ink-muted)}
+.board .tot,.finallist .tot{font-family:var(--display);font-weight:800;text-align:right;font-variant-numeric:tabular-nums}
+.mv.up{color:#1f7a4d;font-size:14px}.mv.down{color:var(--red);font-size:14px}
+/* final */
+#final{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px}
+.fcard{background:#fff;border-radius:var(--radius-lg);padding:22px 26px;box-shadow:var(--shadow);overflow:auto}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:16px;margin:10px 0 18px}
+.pod{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;width:30%;border-radius:var(--radius-md) var(--radius-md) 0 0;padding:14px 8px;color:#fff;text-align:center}
+.pod b{font-family:var(--display);font-size:26px}
+.pod .pr{font-family:var(--display);font-weight:800;font-size:44px}
+.pod.p1{background:var(--red);height:230px}.pod.p2{background:var(--navy);height:180px}.pod.p3{background:#4a6a80;height:150px}
+.finallist{list-style:none;margin:0;padding:0}
+.finallist li{grid-template-columns:44px 1fr 110px}
+.hardest{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.hardest li{grid-template-columns:200px 1fr 60px;font-size:19px}
+.hardest .ctrack i{background:var(--navy)}
+</style>
+</head>
+<body>
+  <header class="bar">
+    <img src="assets/recover-logo.webp" alt="RECOVER">
+    <span class="title">ECG Rhythm Challenge</span>
+    <span class="pill" id="rcount">Lobby</span>
+    <span class="pill">Join code <b id="joinCode">----</b></span>
+    <span class="pill"><span id="players">0</span> learners</span>
+    <span class="spacer"></span>
+    <button class="btn ghost" id="fsBtn" title="Full screen">Full screen</button>
+    <button class="btn ghost" id="endBtn">End session</button>
+    <button class="btn" id="primaryBtn">Start</button>
+  </header>
+
+  <section id="lobby" class="view">
+    <div class="joincard">
+      <p class="eyebrow">RECOVER ALS Rescuer Course</p>
+      <h1>Scan to join</h1>
+      <div class="qrbox" id="qr"></div>
+      <div class="joinurl">or go to <b id="joinUrl"></b> and enter</div>
+      <div class="codebig" id="joinCodeBig">----</div>
+    </div>
+    <div class="namescard">
+      <h2 id="lobbyCount">0 learners have joined</h2>
+      <p class="muted">Names appear here as learners join. Press <b>Start the first rhythm</b> (or the space bar) when everyone is in.</p>
+      <div class="names" id="names"></div>
+      <p class="protonote" id="protoNote"></p>
+    </div>
+  </section>
+
+  <section id="stage" class="view hidden">
+    <div class="left">
+      <div class="scene" id="scene">
+        <span class="phasetag hidden" id="phaseTag"></span>
+        <svg viewBox="0 0 640 240" role="img" aria-label="A dog in lateral recumbency with one rescuer ventilating, one doing chest compressions and one feeling the femoral pulse">
+          <rect x="0" y="228" width="640" height="12" fill="#c4eef9"/>
+          <!-- ventilator: body behind the dog's head -->
+          <circle cx="234" cy="50" r="18" fill="#022033"/>
+          <rect x="208" y="72" width="52" height="110" rx="16" fill="#f2b134"/>
+          <!-- compressor: body (behind the dog) -->
+          <g class="pusher">
+            <circle cx="332" cy="44" r="18" fill="#022033"/>
+            <rect x="306" y="66" width="52" height="110" rx="16" fill="#84d1f5"/>
+          </g>
+          <!-- pulse checker: body -->
+          <circle cx="468" cy="58" r="18" fill="#022033"/>
+          <rect x="442" y="80" width="52" height="108" rx="16" fill="#022033"/>
+          <!-- table -->
+          <rect x="104" y="196" width="432" height="14" rx="4" fill="#022033"/>
+          <rect x="136" y="210" width="12" height="20" fill="#022033"/>
+          <rect x="492" y="210" width="12" height="20" fill="#022033"/>
+          <g transform="translate(340 196) scale(0.67) translate(-340 -196)">
+
+        <!-- dog in lateral recumbency (lying flat on its side): the whole silhouette rests on the table;
+             the legs are a slightly darker shade so they read against the body -->
+        <g fill="#9fb1bd">
+          <path d="M434 172 C 460 178, 488 188, 516 191 C 520 192, 520 196, 514 196 L 434 196 Z"/>
+          <path d="M378 196 C 378 166, 396 148, 412 148 C 432 148, 444 168, 442 196 Z"/>
+          <path class="chest" d="M258 168 C 258 148, 282 140, 322 141 C 366 142, 402 145, 420 154 C 438 164, 442 182, 438 196 L 262 196 C 258 188, 258 178, 258 168 Z"/>
+          <path d="M266 154 C 252 145, 238 143, 225 144 C 211 145, 203 152, 200 158 L 182 164 C 171 167, 166 178, 168 186 C 170 192, 174 196, 182 196 L 268 196 Z"/>
+          <path d="M222 149 C 232 141, 243 138, 248 140 C 246 148, 243 155, 238 160 Z"/>
+        </g>
+        <g fill="#6b8292">
+          <path d="M276 176 L 166 187 L 157 192 L 162 196 L 280 189 Z"/>
+          <path d="M292 184 L 190 191 L 182 196 L 296 196 Z"/>
+          <path d="M404 178 L 508 187 L 518 192 L 512 196 L 400 189 Z"/>
+          <path d="M418 186 L 520 191 L 528 196 L 414 196 Z"/>
+        </g>
+        
+          </g>
+          <!-- ventilator: arms to the bag at the muzzle -->
+          <g stroke="#022033" stroke-width="10" stroke-linecap="round" fill="none">
+            <path d="M222 88 L 212 160"/><path d="M246 88 L 228 158"/>
+          </g>
+          <g id="bag"><ellipse cx="216" cy="166" rx="13" ry="9" fill="#84d1f5" stroke="#022033" stroke-width="2.5"/></g>
+          <path d="M226 168 L 236 178" stroke="#022033" stroke-width="3"/>
+          <!-- compressor: arms and hands on the chest -->
+          <g class="pusher" stroke="#022033" stroke-width="10" stroke-linecap="round" fill="none">
+            <path d="M319 82 L 327 154"/><path d="M341 82 L 337 154"/>
+            <rect x="319" y="152" width="26" height="12" rx="6" fill="#022033" stroke="none"/>
+          </g>
+          <!-- pulse checker: arm to the femoral artery -->
+          <g stroke="#022033" stroke-width="10" stroke-linecap="round" fill="none">
+            <path d="M450 98 L 390 182"/>
+            <circle cx="388" cy="186" r="8" fill="#022033" stroke="none"/>
+          </g>
+          <g class="bubble" id="bubble">
+            <path d="M488 8 h 136 a 12 12 0 0 1 12 12 v 26 a 12 12 0 0 1 -12 12 h -112 l -18 16 l 2 -16 h -8 a 12 12 0 0 1 -12 -12 v -26 a 12 12 0 0 1 12 -12 z" fill="#ffffff" stroke="#022033" stroke-width="3"/>
+            <text id="bubbleText" x="557" y="39" text-anchor="middle" font-family="Outfit, Arial, sans-serif" font-weight="700" font-size="15" fill="#022033">I don't feel a pulse</text>
+          </g>
+        </svg>
+      </div>
+      <div id="algoArea" class="hidden"></div>
+      <div class="mon">
+        <div class="mrow ecgrow"><div class="mcanvas"><canvas id="ecg"></canvas></div><div class="mval"><small>HR</small><b id="hrVal">---</b><em>bpm</em></div></div>
+        <div class="mrow co2row"><div class="mcanvas"><canvas id="co2"></canvas></div><div class="mval" id="co2Box"><small>ETCO₂</small><b id="co2Val">--</b><em>mmHg</em></div></div>
+      </div>
+    </div>
+    <aside class="side" id="side"></aside>
+  </section>
+
+  <section id="final" class="view hidden">
+    <div class="fcard">
+      <p class="eyebrow">Final results</p>
+      <h2 style="margin:0">Leaderboard</h2>
+      <div class="podium" id="podium"></div>
+      <ol class="finallist" id="finalList"></ol>
+    </div>
+    <div class="fcard">
+      <p class="eyebrow">For the debrief</p>
+      <h2 style="margin:0 0 4px">Hardest rhythms for this group</h2>
+      <p class="muted">Percent of the class who answered correctly.</p>
+      <ul class="hardest" id="hardest"></ul>
+    </div>
+  </section>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="js/mock-firebase.js?v=2026-10-06a"></script>
+<script src="js/config.js?v=2026-10-06a"></script>
+<script src="js/rhythms.js?v=2026-10-06a"></script>
+<script src="js/monitor.js?v=2026-10-06a"></script>
+<script src="js/live-rhythms.js?v=2026-10-06a"></script>
+<script src="js/display.js?v=2026-10-06a"></script>
+</body>
+</html>
