@@ -25,10 +25,18 @@
   let db, uid, sref, unsubPlayers, unsubAnswers, unsubSession, roundStartMs = null;
   const Live = {
     async start() {
-      if (!firebase.apps.length) firebase.initializeApp(APP_CONFIG.firebase);
-      const auth = firebase.auth(); db = firebase.firestore();
-      if (!auth.currentUser) await auth.signInAnonymously();
-      uid = auth.currentUser.uid;
+      db = firebase.firestore(); uid = firebase.auth().currentUser.uid;
+      S.ended = false;
+      // a session this instructor left open (browser closed mid-class) is closed now, and its names deleted
+      try {
+        const old = await db.collection("live_sessions").where("hostUid", "==", uid).where("status", "==", "open").get();
+        for (const d of old.docs) {
+          const ps = await d.ref.collection("players").get(), b = db.batch();
+          ps.forEach(x => b.delete(x.ref));
+          b.update(d.ref, { status: "closed", phase: "ended", board: (d.data().board || []).map(e => ({ uid: e.uid, total: e.total, rank: e.rank })) });
+          await b.commit();
+        }
+      } catch (err) { console.warn("couldn't close earlier sessions", err); }
       // a join code nobody else is using right now
       for (let tries = 0; tries < 8; tries++) {
         const taken = await db.collection("live_sessions").where("code", "==", S.code).where("status", "==", "open").limit(1).get();
@@ -492,10 +500,28 @@
   }
   function squeeze() { const b = $("bag"); if (!b) return; b.classList.remove("squeeze"); void b.getBoundingClientRect(); b.classList.add("squeeze"); }
 
+  function hideViews() { ["lobby", "stage", "final"].forEach(id => $(id).classList.add("hidden")); }
+
   // ---------- start ----------
   document.addEventListener("DOMContentLoaded", () => {
-    newSession(); render();
-    Promise.resolve(Backend.start()).catch(err => { console.error(err); $("protoNote").textContent = "Couldn't connect to the database: " + (err.message || err) + ". Reload to try again, or add ?demo to the address for the simulated class."; });
+    $("signOutLink").addEventListener("click", e => { e.preventDefault(); if (S.phase === "lobby" || confirm("Sign out and end this session?")) { Backend.end(); StaffAuth.signOut(); } });
+    newSession();
+    if (!LIVE) { document.querySelector(".staffline").classList.add("hidden"); render(); Backend.start(); return; }
+    // live mode: only a listed instructor (or administrator) can start a session
+    StaffAuth.init();
+    StaffAuth.completeEmailLink().catch(err => { $("signin").classList.remove("hidden"); StaffAuth.panel($("signin"), { blocked: "That sign-in link didn't work (" + (err.message || err) + "). Request a new one." }); });
+    let started = false;
+    StaffAuth.watch((user, role) => {
+      const gate = $("signin");
+      if (!user) { if (started) return location.reload(); gate.classList.remove("hidden"); hideViews(); StaffAuth.panel(gate); return; }
+      if (!role) { gate.classList.remove("hidden"); hideViews(); StaffAuth.panel(gate, { blocked: (user.email || "This account") + " isn't registered as a RECOVER instructor. Ask a RECOVER administrator to add this email address." }); return; }
+      gate.classList.add("hidden");
+      $("staffWho").textContent = user.email;
+      if (!started) {
+        started = true; render();
+        Promise.resolve(Backend.start()).catch(err => { console.error(err); $("protoNote").textContent = "Couldn't start the session: " + (err.message || err) + ". Reload to try again."; });
+      }
+    });
     $("primaryBtn").addEventListener("click", primary);
     $("endBtn").addEventListener("click", () => { if (S.phase !== "lobby" && confirm("End this session?")) { if (S.phase === "answer") closeAnswers(); go("final"); Backend.end(); } });
     $("fsBtn").addEventListener("click", () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); });

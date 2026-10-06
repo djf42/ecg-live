@@ -27,6 +27,19 @@ body::before,body::after{display:none}
 .bar .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.5)}
 .bar .btn:disabled{background:rgba(255,255,255,.18);color:rgba(255,255,255,.7);border-color:transparent}
 .view{height:calc(100% - 64px);box-sizing:border-box;padding:18px 22px}
+/* sign-in */
+#signin{display:flex;align-items:flex-start;justify-content:center;padding-top:6vh}
+.signcard{background:#fff;border-radius:var(--radius-lg);padding:30px 32px;box-shadow:var(--shadow);width:min(520px,92vw)}
+.signcard h1{margin:0 0 8px;font-size:32px}
+.signcard .btn{width:100%;margin-top:12px;font-size:18px}
+.signor{text-align:center;color:var(--ink-muted);margin:16px 0 6px;font-size:15px}
+.signform{display:flex;flex-direction:column}
+.signform input{font:inherit;font-size:18px;padding:11px 12px;border:2px solid var(--mist);border-radius:var(--radius-md)}
+.signform input:focus{border-color:var(--navy);outline:none}
+.signmsg{min-height:1.3em;margin:14px 0 0;font-weight:600;color:var(--navy)}
+.signmsg.warn{color:var(--red-deep)}
+.staffline{margin-top:6px;font-size:14px;color:var(--ink-muted)}
+.staffline a{color:var(--navy)}
 /* lobby */
 #lobby{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:28px;align-items:start}
 .joincard{background:#fff;border-radius:var(--radius-lg);padding:26px;text-align:center;box-shadow:var(--shadow)}
@@ -134,7 +147,9 @@ body::before,body::after{display:none}
     <button class="btn" id="primaryBtn">Start</button>
   </header>
 
-  <section id="lobby" class="view">
+  <section id="signin" class="view hidden"></section>
+
+  <section id="lobby" class="view hidden">
     <div class="joincard">
       <p class="eyebrow">RECOVER ALS Rescuer Course</p>
       <h1>Scan to join</h1>
@@ -147,6 +162,7 @@ body::before,body::after{display:none}
       <p class="muted">Names appear here as learners join.</p>
       <div class="names" id="names"></div>
       <p class="protonote" id="protoNote"></p>
+      <p class="staffline">Signed in as <b id="staffWho"></b> · <a href="#" id="signOutLink">Sign out</a></p>
     </div>
   </section>
 
@@ -244,6 +260,7 @@ body::before,body::after{display:none}
 <script src="js/rhythms.js?v=2026-10-06a"></script>
 <script src="js/monitor.js?v=2026-10-06a"></script>
 <script src="js/live-rhythms.js?v=2026-10-06a"></script>
-<script src="js/display.js?v=2026-10-06a"></script>
+<script src="js/staff-auth.js?v=2026-10-06b"></script>
+<script src="js/display.js?v=2026-10-06b"></script>
 </body>
 </html>

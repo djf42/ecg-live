@@ -18,7 +18,11 @@
   const newId = () => Math.random().toString(36).slice(2, 12);
 
   // the answer-window rule from the real database rules: current rhythm, once, within 11 s of opening
+  const OWNER = "dan.fletcher@recoverinitiative.org";
+  function staffRole(db) { const u = AUTH.currentUser; if (!u || u.isAnonymous || !u.email) return ""; if (u.email === OWNER) return "owner"; const d = db["live_staff/" + u.email]; return d ? d.role : ""; }
   function checkRules(path, data, db) {
+    if (/^live_sessions\/[^/]+$/.test(path) && !db[path] && !["owner", "admin", "instructor"].includes(staffRole(db))) return "only listed instructors can start sessions";
+    if (/^live_staff\//.test(path)) { const r = staffRole(db); if (!(r === "owner" || (r === "admin" && data.role === "instructor"))) return "not allowed to change staff"; }
     const m = path.match(/^live_sessions\/([^/]+)\/answers\/([^/]+)$/);
     if (!m) return null;
     const ses = db["live_sessions/" + m[1]];
@@ -34,7 +38,7 @@
       collection: n => colRef(path + "/" + n),
       set(d) { const db = load(); const bad = checkRules(path, d, db); if (bad) return Promise.reject(new Error("permission-denied: " + bad)); db[path] = dehydrate(d); save(db); changed(); return Promise.resolve(); },
       update(d) { const db = load(); if (!db[path]) return Promise.reject(new Error("no document")); db[path] = Object.assign(db[path], dehydrate(d)); save(db); changed(); return Promise.resolve(); },
-      delete() { const db = load(); delete db[path]; save(db); changed(); return Promise.resolve(); },
+      delete() { const db = load(); if (/^live_staff\//.test(path)) { const r = staffRole(db), cur = db[path]; if (!(r === "owner" || (r === "admin" && cur && cur.role === "instructor"))) return Promise.reject(new Error("permission-denied")); } delete db[path]; save(db); changed(); return Promise.resolve(); },
       get: () => Promise.resolve(docSnap(path)),
       onSnapshot(cb) { let last; const f = () => { const s = JSON.stringify(load()[path]); if (s !== last) { last = s; cb(docSnap(path)); } }; listeners.add(f); setTimeout(f, 0); return () => listeners.delete(f); }
     };
@@ -47,6 +51,8 @@
       add(d) { const r = docRef(path + "/" + newId()); return r.set(d).then(() => r); },
       where: (f, op, v) => colRef(path, filters.concat([[f, op, v]]), lim),
       limit: n => colRef(path, filters, n),
+      orderBy: () => colRef(path, filters, lim),
+      startAfter: () => colRef(path, filters.concat([["__none__", "==", 1]]), lim),
       get: () => Promise.resolve(query(path, filters, lim, null)),
       onSnapshot(cb) { let prev = null; const f = () => { const q = query(path, filters, lim, prev); if (q._changed) cb(q); prev = q._map; }; listeners.add(f); setTimeout(f, 0); return () => listeners.delete(f); }
     };
@@ -67,12 +73,21 @@
     const ops = [];
     return { set(r, d) { ops.push(() => r.set(d)); }, update(r, d) { ops.push(() => r.update(d)); }, delete(r) { ops.push(() => r.delete()); }, commit: () => Promise.all(ops.map(f => f())) };
   }
+  const authListeners = [];
   const AUTH = {
     currentUser: null,
-    signInAnonymously() { let id = sessionStorage.getItem("mockuid"); if (!id) { id = "u_" + newId(); sessionStorage.setItem("mockuid", id); } this.currentUser = { uid: id, isAnonymous: true }; return Promise.resolve({ user: this.currentUser }); },
-    onAuthStateChanged(cb) { setTimeout(() => cb(this.currentUser), 0); return () => {}; }
+    _emit() { authListeners.forEach(cb => cb(this.currentUser)); },
+    signInAnonymously() { let id = sessionStorage.getItem("mockuid"); if (!id) { id = "u_" + newId(); sessionStorage.setItem("mockuid", id); } this.currentUser = { uid: id, isAnonymous: true }; this._emit(); return Promise.resolve({ user: this.currentUser }); },
+    signInWithPopup() { const email = (sessionStorage.getItem("mockEmail") || OWNER).toLowerCase(); this.currentUser = { uid: "g_" + email.replace(/[^a-z0-9]/g, ""), email, isAnonymous: false, emailVerified: true }; sessionStorage.setItem("mockStaff", email); this._emit(); return Promise.resolve({ user: this.currentUser }); },
+    signOut() { this.currentUser = null; sessionStorage.removeItem("mockStaff"); this._emit(); return Promise.resolve(); },
+    isSignInWithEmailLink: () => false,
+    sendSignInLinkToEmail: () => Promise.resolve(),
+    onAuthStateChanged(cb) { authListeners.push(cb); setTimeout(() => cb(this.currentUser), 0); return () => {}; }
   };
+  // stay signed in across reloads in the same tab, like Firebase does
+  if (sessionStorage.getItem("mockStaff")) { const e = sessionStorage.getItem("mockStaff"); AUTH.currentUser = { uid: "g_" + e.replace(/[^a-z0-9]/g, ""), email: e, isAnonymous: false, emailVerified: true }; }
   const DB = { collection: n => colRef(n), doc: p => docRef(p), batch };
-  window.firebase = { apps: [], initializeApp() { this.apps.push({}); }, auth: () => AUTH, firestore: Object.assign(() => DB, { FieldValue: { serverTimestamp: () => SERVER } }) };
+  function GoogleAuthProvider() {}
+  window.firebase = { apps: [], initializeApp() { this.apps.push({}); }, auth: Object.assign(() => AUTH, { GoogleAuthProvider }), firestore: Object.assign(() => DB, { FieldValue: { serverTimestamp: () => SERVER } }) };
   window.MockFS = { reset() { localStorage.removeItem(KEY); }, dump: load };
 })();
