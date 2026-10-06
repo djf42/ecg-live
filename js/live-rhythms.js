@@ -1,6 +1,6 @@
 /* =================================================================
    ECG Rhythm Challenge Live: the standard rhythm set (RECOVER ALS Rescuer Course)
-   8 rhythms, always in this set. Waveforms are synthesized in millivolts (lead II-like).
+   8 rhythms, always in this set and this order (interleaved so one rhythm doesn't hint at the next). Waveforms are synthesized in millivolts (lead II-like).
    etco2: value shown during compressions (non-ROSC rhythms stay there; ROSC rises after compressions stop).
    ================================================================= */
 window.LIVE_SET = (function () {
@@ -55,30 +55,30 @@ window.LIVE_SET = (function () {
   const scaled = (k, f) => (t, v) => k * f(t, v);   // keep large rhythms inside the monitor
 
   const RHYTHMS = [
-    { key: "pvt216", cat: "pvt", rate: 216, etco2: 22, detail: "Wide complexes at about 216/min, each landing on the previous T wave (R on T)",
-      fn: scaled(0.72, regular(60 / 216, vtWideRonT, 0.015)),
-      teach: "No pulse, consistent and repeating wide complexes, and a rate above 200/min: pulseless VT. Shockable." },
-    { key: "pvt294", cat: "pvt", rate: 294, etco2: 19, detail: "Narrower complexes at about 294/min",
-      fn: scaled(0.78, regular(60 / 294, vtNarrow, 0.015)),
-      teach: "No pulse, consistent and repeating complexes at well over 200/min: pulseless VT, even though the complexes are narrower. Shockable." },
-    { key: "vfFine", cat: "vf", rate: null, hr: "none", etco2: 18, detail: "Fine VF: low amplitude, high frequency",
-      fn: vf(6.2, 0.32),
-      teach: "No consistent, repeating complexes, and the ECG isn't a flat line: fine VF. Check the gain before calling it asystole. Shockable." },
-    { key: "vfCoarse", cat: "vf", rate: null, hr: "wild", etco2: 24, detail: "Coarse VF that can look like repeating complexes at first glance",
-      fn: scaled(0.62, vfOrganized()),
-      teach: "At first glance these look like repeating complexes, but the height, shape and spacing keep changing: no consistent, repeating complexes, so this is coarse VF. Shockable." },
     { key: "pea84", cat: "pea", rate: 84, etco2: 26, detail: "Sinus-looking complexes at about 84/min",
       fn: regular(60 / 84, sinusBeat),
       teach: "This looks like a normal sinus rhythm, but there's no pulse: consistent, repeating complexes under 200/min without a pulse is PEA. Non-shockable." },
+    { key: "vfFine", cat: "vf", rate: null, hr: "none", etco2: 18, detail: "Fine VF: low amplitude, high frequency",
+      fn: vf(6.2, 0.32),
+      teach: "No consistent, repeating complexes, and the ECG isn't a flat line: fine VF. Check the gain before calling it asystole. Shockable." },
     { key: "pea182", cat: "pea", rate: 182, etco2: 20, detail: "Wide, ventricular-looking complexes at about 182/min",
       fn: scaled(0.76, regular(60 / 182, x => wideBeat(x, 0.62))),
       teach: "Fast, wide, ventricular-looking complexes without a pulse, but the rate (about 182/min) is below 200/min, so by the RECOVER algorithm this is PEA, not pulseless VT. Non-shockable." },
+    { key: "pvt294", cat: "pvt", rate: 294, etco2: 19, detail: "Narrower complexes at about 294/min",
+      fn: scaled(0.78, regular(60 / 294, vtNarrow, 0.015)),
+      teach: "No pulse, consistent and repeating complexes at well over 200/min: pulseless VT, even though the complexes are narrower. Shockable." },
     { key: "asys", cat: "asys", rate: 0, etco2: 21, detail: "No electrical activity",
       fn: asystole(),
       teach: "A flat line with no complexes: asystole. Non-shockable." },
+    { key: "vfCoarse", cat: "vf", rate: null, hr: "wild", etco2: 24, detail: "Coarse VF that can look like repeating complexes at first glance",
+      fn: scaled(0.62, vfOrganized()),
+      teach: "At first glance these look like repeating complexes, but the height, shape and spacing keep changing: no consistent, repeating complexes, so this is coarse VF. Shockable." },
     { key: "rosc142", cat: "rosc", rate: 142, etco2: 28, etco2After: 56, detail: "Sinus rhythm at about 142/min with a pulse; ETCO₂ rising from 28 to 56 mmHg",
       fn: regular(60 / 142, sinusBeat),
-      teach: "Organized rhythm with a palpable pulse and a sharp rise in ETCO₂: return of spontaneous circulation." }
+      teach: "Organized rhythm with a palpable pulse and a sharp rise in ETCO₂: return of spontaneous circulation." },
+    { key: "pvt216", cat: "pvt", rate: 216, etco2: 22, detail: "Wide complexes at about 216/min, each landing on the previous T wave (R on T)",
+      fn: scaled(0.72, regular(60 / 216, vtWideRonT, 0.015)),
+      teach: "No pulse, consistent and repeating wide complexes, and a rate above 200/min: pulseless VT. Shockable." }
   ];
   const CATS = [
     { key: "asys", label: "Asystole", short: "Asystole" }, { key: "pea", label: "PEA", short: "PEA" },
