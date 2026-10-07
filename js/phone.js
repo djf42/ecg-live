@@ -60,8 +60,29 @@
     if (!name) { $("nameMsg").textContent = "Enter a name to show on the leaderboard."; return; }
     $("joinBtn").disabled = true;
     me = { name, role: $("roleSel").value || null, country: $("countrySel").value || null, joinedAt: firebase.firestore.FieldValue.serverTimestamp() };
-    try { await sref.collection("players").doc(uid).set(me); listen(); }
-    catch (err) { $("joinBtn").disabled = false; $("nameMsg").textContent = "Couldn't join: " + (err.message || err); }
+    $("nameMsg").textContent = "";
+    const pref = sref.collection("players").doc(uid);
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try { await pref.set(me); return listen(); }
+      catch (err) {
+        // The database refuses a second save of the same player. That happens when the learner
+        // is already in: the QR code was scanned twice (both tabs share one browser ID), or a
+        // save went through but its reply was lost and Firebase retried it. Check, and carry on.
+        try {
+          const snap = await pref.get();
+          if (snap.exists) { me = snap.data(); return listen(); }
+        } catch (e) { /* fall through */ }
+        if (attempt === 1) {
+          // not in yet: refresh the sign-in and try once more
+          try { const u = firebase.auth().currentUser; if (u && u.getIdToken) await u.getIdToken(true); } catch (e) { /* ignore */ }
+          await new Promise(r => setTimeout(r, 800));
+          continue;
+        }
+        console.warn("join failed", err);
+        $("joinBtn").disabled = false;
+        $("nameMsg").textContent = "Couldn't join just now. Please tap Join again, or reload the page.";
+      }
+    }
   }
 
   // ---------- follow the projected screen ----------
