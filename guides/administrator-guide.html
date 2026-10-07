@@ -54,7 +54,7 @@ footer em{font-style:normal;font-family:Outfit,Arial,sans-serif;font-weight:700;
 <body><div class="page">
 <header class="cover"><div class="logo"><img src="../assets/recover-logo.webp" alt="RECOVER"></div>
 <div><p class="eyebrow">RECOVER ALS Rescuer Course</p><h1>ECG Rhythm Challenge Live</h1><p class="sub">Administrator guide</p><p class="date">Updated October 2026</p></div></header>
-<main><div class="lead"><p>How to manage instructors, sessions and research results for the live ECG rhythm game, plus everything instructors need to run a session (Part 2), since administrators can run sessions too.</p></div><nav class="toc"><b>Contents</b><ol><li class="part">Part 1: Administration</li><li><a href="#s1">Roles and pages</a></li><li><a href="#s2">Signing in</a></li><li><a href="#s3">Managing instructors</a></li><li><a href="#s4">Sessions</a></li><li><a href="#s5">Research results</a></li><li><a href="#s6">Data, privacy and technical notes</a></li><li class="part">Part 2: Running sessions</li><li><a href="#s7">At a glance</a></li><li><a href="#s8">Before your lab</a></li><li><a href="#s9">Starting a session</a></li><li><a href="#s10">Running each rhythm</a></li><li><a href="#s11">Leading the algorithm discussion</a></li><li><a href="#s12">Ending the session</a></li><li><a href="#s13">Troubleshooting</a></li></ol></nav><h1 class="part">Part 1: Administration</h1>
+<main><div class="lead"><p>How to manage instructors, sessions and research results for the live ECG rhythm game, plus everything instructors need to run a session (Part 2), since administrators can run sessions too.</p></div><nav class="toc"><b>Contents</b><ol><li class="part">Part 1: Administration</li><li><a href="#s1">Roles and pages</a></li><li><a href="#s2">Signing in</a></li><li><a href="#s3">Managing instructors</a></li><li><a href="#s4">Sessions</a></li><li><a href="#s5">Research results</a></li><li><a href="#s6">Data, privacy and technical notes</a></li><li class="part">Part 2: Running sessions</li><li><a href="#s7">Use &amp; Research Notice</a></li><li><a href="#s8">At a glance</a></li><li><a href="#s9">Before your lab</a></li><li><a href="#s10">Starting a session</a></li><li><a href="#s11">Running each rhythm</a></li><li><a href="#s12">Leading the algorithm discussion</a></li><li><a href="#s13">Ending the session</a></li><li><a href="#s14">Troubleshooting</a></li></ol></nav><h1 class="part">Part 1: Administration</h1>
 <div class="keep"><h2 id="s1">Roles and pages</h2>
 <p>Four roles, each allowed only what it needs; the database enforces them, so they hold even if someone edits the web pages.</p></div>
 <table>
@@ -247,7 +247,10 @@ footer em{font-style:normal;font-family:Outfit,Arial,sans-serif;font-weight:700;
 <p><strong>GitHub's "secret detected" warning.</strong> GitHub flags the Firebase API key in <code>js/config.js</code>. It's a public identifier that every Firebase web page includes, not a password, and the database rules are what protect the data. Close the alert as a false positive, and don't revoke the key, since all of RECOVER's games share it.</p>
 <h1 class="part">Part 2: Running sessions</h1>
 <p>This part matches the instructor guide, so administrators can support instructors and run sessions themselves.</p>
-<div class="keep"><h2 id="s7">At a glance</h2>
+<div class="keep"><h2 id="s7">Use &amp; Research Notice</h2>
+<p>The ECG Rhythm Challenge is intended <strong>exclusively for use during RECOVER ALS Rescuer Workshops led by Certified RECOVER Instructors</strong>. It should not be used for other courses, independent training, or activities outside of an authorized RECOVER ALS Rescuer Workshop.</p></div>
+<p>Session responses and results are collected and may be used by RECOVER for research and evaluation purposes, including helping us better understand learner performance and improve RECOVER education and training. User names are never stored, but user roles and country are saved.</p>
+<div class="keep"><h2 id="s8">At a glance</h2>
 <p>A session covers 8 rhythms in about 20 to 30 minutes, depending on how long each discussion runs.</p></div>
 <p>Each rhythm starts with a few seconds of chest compressions on the projected screen. When compressions stop, the pulse checker reports, the underlying rhythm appears, and learners have 10 seconds to name it on their phones. Faster correct answers earn more points (100 to 1,000). You then show how the room answered, walk the group through the RECOVER ECG Algorithm one question at a time, reveal the answer, and show the leaderboard.</p>
 <div class="keep"><p><strong>What you need:</strong></p>
@@ -284,7 +287,7 @@ footer em{font-style:normal;font-family:Outfit,Arial,sans-serif;font-weight:700;
 </tr>
 </tbody>
 </table></div>
-<div class="keep"><h2 id="s8">Before your lab</h2>
+<div class="keep"><h2 id="s9">Before your lab</h2>
 <p>Practice at least one full session in demo mode before your first lab, and test the room's internet if you can.</p></div>
 <p><strong>1. Make sure you have access.</strong> RECOVER adds certified instructors by email address. If you see "isn't registered as a RECOVER instructor" when you sign in, contact a RECOVER administrator (<a href="mailto:instructors@recoverinitiative.org">instructors@recoverinitiative.org</a>) and give them the exact address you'll sign in with.</p>
 <div class="keep"><p><strong>2. Sign in on the laptop you'll use.</strong> Open the projector page and choose one of:</p>
@@ -301,13 +304,13 @@ footer em{font-style:normal;font-family:Outfit,Arial,sans-serif;font-weight:700;
 <li>Venue Wi-Fi can struggle with many phones at once. If it's unreliable, ask learners to use mobile data.</li>
 <li>If possible, join from your own phone as a test learner before the class arrives.</li>
 </ul>
-<div class="keep"><h2 id="s9">Starting a session</h2>
+<div class="keep"><h2 id="s10">Starting a session</h2>
 <p>Signing in on the projector page opens a new session automatically, with its own 4-letter join code.</p></div>
 <p><strong>The lobby</strong> shows a QR code, the join code, and the names of learners as they join. The number of learners also appears in the top bar.</p>
 <p><strong>Learners join</strong> by scanning the QR code with their phone camera. Anyone who can't scan can go to <a href="https://djf42.github.io/ecg-live/join.html">djf42.github.io/ecg-live/join.html</a> and type the code. They then enter a display name for the leaderboard (first name and last initial works well) and, if they wish, their role and country. Role and country are optional and stored without names; they help RECOVER see which rhythms are hardest for different groups.</p>
 <p><strong>When most of the room has joined,</strong> press <strong>Start the first rhythm</strong> (or the space bar, or your clicker).</p>
 <p><strong>Late joiners</strong> can scan the code at any time, even mid-session. They start at 0 points and can answer from the next rhythm on.</p>
-<div class="keep"><h2 id="s10">Running each rhythm</h2>
+<div class="keep"><h2 id="s11">Running each rhythm</h2>
 <p>Every rhythm follows the same steps, and one button in the top right of the screen (or the space bar, right arrow or a clicker) always moves to the next step.</p></div>
 <table>
 <thead>
@@ -377,7 +380,7 @@ footer em{font-style:normal;font-family:Outfit,Arial,sans-serif;font-weight:700;
 <li>The button is briefly grayed out just after time's up, while the last answers in transit are counted.</li>
 <li><strong>End session</strong> (top bar) ends the session at any point and goes to the final results.</li>
 </ul></div>
-<div class="keep"><h2 id="s11">Leading the algorithm discussion</h2>
+<div class="keep"><h2 id="s12">Leading the algorithm discussion</h2>
 <p>The point of the algorithm step is for the group to reach the diagnosis together, so let learners do the reasoning before you press Next step.</p></div>
 <ol>
 <li>After <strong>Show results</strong>, comment on the spread of answers without saying which is right, for example: "Most of you said pulseless VT, and a few said PEA. Let's work it out."</li>
@@ -440,7 +443,7 @@ footer em{font-style:normal;font-family:Outfit,Arial,sans-serif;font-weight:700;
 </tbody>
 </table></div>
 <p>The rhythm types are interleaved so one rhythm doesn't hint at the next. Rhythms 3 and 6 are designed to be the most challenging, so allow extra time for them.</p>
-<div class="keep"><h2 id="s12">Ending the session</h2>
+<div class="keep"><h2 id="s13">Ending the session</h2>
 <p>After the 8th rhythm's leaderboard, press <strong>Final results</strong>: the session ends, and the screen shows the podium, the top 10 and the hardest rhythms for this group.</p></div>
 <ul>
 <li><strong>The "hardest rhythms" chart</strong> shows the percent of the class who answered each rhythm correctly, lowest first. It's a good prompt for a short closing review.</li>
@@ -450,8 +453,8 @@ footer em{font-style:normal;font-family:Outfit,Arial,sans-serif;font-weight:700;
 <li><strong>To stop early,</strong> press <strong>End session</strong> in the top bar at any point.</li>
 <li><strong>On a shared laptop,</strong> click <strong>Sign out</strong> in the lobby when you're done.</li>
 </ul>
-<p><strong>Privacy.</strong> Learners need no account. Their display name is used only for the session's leaderboard and is deleted when the session ends. For research, RECOVER keeps each answer, its timing, and the learner's optional role and country, without names.</p>
-<div class="keep"><h2 id="s13">Troubleshooting</h2>
+<p><strong>Privacy.</strong> Learners do not need an account. Their display name is used only for the session's leaderboard and is deleted when the session ends. For research, RECOVER keeps each answer, its timing, and the learner's optional role and country, without names.</p>
+<div class="keep"><h2 id="s14">Troubleshooting</h2>
 <table>
 <thead>
 <tr>
