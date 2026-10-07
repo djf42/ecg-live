@@ -47,7 +47,7 @@ Anonymous sign-in (for learners) and Google sign-in are already on, and `djf42.g
 
 ## Demo mode
 
-Add `?demo` to the projector address (`https://djf42.github.io/ecg-live/?demo`) to run with a simulated class of 24, without phones. Useful for practising the flow or showing the game to someone.
+Add `?demo` to the projector address (`https://djf42.github.io/ecg-live/?demo`) to run with a simulated class of 24, without phones. Useful for practicing the flow or showing the game to someone.
 
 ## Roles
 

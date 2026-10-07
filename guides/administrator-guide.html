@@ -1,0 +1,502 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ECG Rhythm Challenge Live: Administrator guide</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet"><style>
+:root{--navy:#022033;--red:#ee3c36;--sky:#84d1f5;--ice:#d9f8ff;--mist:#e6e6e6;--ink:#1d2b36;--muted:#5b6b78}
+*{box-sizing:border-box}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{margin:0;background:#fff;color:var(--ink);font-family:"Source Sans 3","Source Sans Pro",Arial,sans-serif;font-size:11pt;line-height:1.5}
+.cover{background:var(--navy);color:#fff;padding:28px 40px 26px;display:flex;align-items:center;gap:26px;border-bottom:6px solid var(--red)}
+.cover .logo{background:#fff;border-radius:12px;padding:8px 12px;flex:none}
+.cover .logo img{display:block;height:64px;width:auto}
+.cover .eyebrow{font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:9pt;color:var(--sky);margin:0 0 4px}
+.cover h1{font-family:Outfit,Arial,sans-serif;font-weight:800;font-size:25pt;line-height:1.1;margin:0}
+.cover .sub{font-family:Outfit,Arial,sans-serif;font-weight:600;font-size:14pt;color:#fff;opacity:.9;margin:4px 0 0}
+.cover .date{font-size:9.5pt;color:rgba(255,255,255,.7);margin-top:6px}
+main{padding:22px 40px 10px;max-width:900px;margin:0 auto}
+.lead{font-size:12.5pt;color:var(--ink);border-left:4px solid var(--sky);padding:4px 0 4px 14px;margin:6px 0 18px}
+.lead p{margin:0 0 8px}.lead p:last-child{margin:0}
+main a{color:#0b5c8a;text-decoration:underline;text-underline-offset:2px}
+td:first-child a{color:#0b5c8a}
+.toc{background:#f4f8fa;border-radius:10px;padding:12px 18px;margin:0 0 22px}
+.toc b{font-family:Outfit,Arial,sans-serif;font-size:11pt;color:var(--navy);letter-spacing:.06em;text-transform:uppercase}
+.toc ol{margin:6px 0 0;padding-left:20px;columns:2;column-gap:28px}
+.toc li{margin:2px 0;break-inside:avoid}
+.toc a{color:var(--navy);text-decoration:none;font-weight:600}
+.toc a:hover{color:var(--red)}
+.toc .part{list-style:none;margin-left:-20px;font-weight:700;color:var(--red);column-span:all}
+h1.part{font-family:Outfit,Arial,sans-serif;font-weight:800;font-size:18pt;color:#fff;background:var(--red);border-radius:8px;padding:8px 16px;margin:26px 0 8px;break-after:avoid}
+h2{font-family:Outfit,Arial,sans-serif;font-weight:800;font-size:16pt;color:var(--navy);margin:24px 0 8px;padding-left:12px;border-left:5px solid var(--red);line-height:1.2;break-after:avoid}
+h3{font-family:Outfit,Arial,sans-serif;font-weight:700;color:var(--navy);break-after:avoid}
+p{margin:6px 0 10px}
+strong{color:var(--navy)}
+ul,ol{margin:4px 0 12px;padding-left:22px}
+li{margin:3px 0}
+li::marker{color:var(--red);font-weight:700}
+code{font-family:inherit;font-size:.95em;background:var(--ice);color:var(--navy);padding:1px 6px;border-radius:5px}
+table{width:100%;border-collapse:separate;border-spacing:0;margin:8px 0 16px;font-size:10pt;border:1px solid #cfd8de;border-radius:8px;overflow:hidden;break-inside:auto}
+thead{display:table-header-group}
+th{background:var(--navy);color:#fff;text-align:left;font-weight:700;padding:7px 10px;font-size:9.5pt;letter-spacing:.02em}
+td{padding:7px 10px;border-top:1px solid #e3e9ed;vertical-align:top}
+tr{break-inside:avoid}
+table{break-inside:avoid}
+h2,h1.part{break-inside:avoid}
+h1.part:nth-of-type(2){break-before:page;margin-top:0}
+h2+p,h2+table,h2+ul,h2+ol{break-before:avoid}
+.keep{break-inside:avoid;padding-top:22px}
+.keep>h2{margin-top:0}
+tbody tr:nth-child(even) td{background:#f6f9fb}
+td:first-child{font-weight:600;color:var(--navy)}
+footer{margin:26px 40px 30px;padding-top:12px;border-top:2px solid var(--mist);display:flex;justify-content:space-between;font-size:9pt;color:var(--muted)}
+footer em{font-style:normal;font-family:Outfit,Arial,sans-serif;font-weight:700;color:var(--navy)}
+@media screen{body{background:#eef4f7}.page{max-width:980px;margin:0 auto;background:#fff;box-shadow:0 2px 20px rgba(2,32,51,.12)}}
+@page{size:Letter;margin:14mm 12mm 16mm}
+@media print{.cover{border-radius:0}main{padding:16px 6px 0;max-width:none}footer{margin:20px 6px 0}}
+</style></head>
+<body><div class="page">
+<header class="cover"><div class="logo"><img src="../assets/recover-logo.webp" alt="RECOVER"></div>
+<div><p class="eyebrow">RECOVER ALS Rescuer Course</p><h1>ECG Rhythm Challenge Live</h1><p class="sub">Administrator guide</p><p class="date">Updated October 2026</p></div></header>
+<main><div class="lead"><p>How to manage instructors, sessions and research results for the live ECG rhythm game, plus everything instructors need to run a session (Part 2), since administrators can run sessions too.</p></div><nav class="toc"><b>Contents</b><ol><li class="part">Part 1: Administration</li><li><a href="#s1">Roles and pages</a></li><li><a href="#s2">Signing in</a></li><li><a href="#s3">Managing instructors</a></li><li><a href="#s4">Sessions</a></li><li><a href="#s5">Research results</a></li><li><a href="#s6">Data, privacy and technical notes</a></li><li class="part">Part 2: Running sessions</li><li><a href="#s7">At a glance</a></li><li><a href="#s8">Before your lab</a></li><li><a href="#s9">Starting a session</a></li><li><a href="#s10">Running each rhythm</a></li><li><a href="#s11">Leading the algorithm discussion</a></li><li><a href="#s12">Ending the session</a></li><li><a href="#s13">Troubleshooting</a></li></ol></nav><h1 class="part">Part 1: Administration</h1>
+<div class="keep"><h2 id="s1">Roles and pages</h2>
+<p>Four roles, each allowed only what it needs; the database enforces them, so they hold even if someone edits the web pages.</p></div>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Who</th>
+<th>Can</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Owner</td>
+<td>dan.fletcher@recoverinitiative.org</td>
+<td>Everything an administrator can, plus add and remove administrators</td>
+</tr>
+<tr>
+<td>Administrator</td>
+<td>A small number of people, added by the owner</td>
+<td>Add and remove instructors, close sessions, see research results; also run sessions</td>
+</tr>
+<tr>
+<td>Instructor</td>
+<td>Certified RECOVER instructors, added by an administrator</td>
+<td>Sign in on the projector page and run sessions</td>
+</tr>
+<tr>
+<td>Learner</td>
+<td>Anyone with a session's join code</td>
+<td>Join and answer on a phone; no account</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Address</th>
+<th>Used by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Administration</td>
+<td><a href="https://djf42.github.io/ecg-live/admin.html">djf42.github.io/ecg-live/admin.html</a></td>
+<td>The owner and administrators</td>
+</tr>
+<tr>
+<td>Projector page</td>
+<td><a href="https://djf42.github.io/ecg-live">djf42.github.io/ecg-live</a></td>
+<td>Instructors and administrators running a session</td>
+</tr>
+<tr>
+<td>Practice (demo)</td>
+<td><a href="https://djf42.github.io/ecg-live/?demo">djf42.github.io/ecg-live/?demo</a></td>
+<td>Anyone practicing, with a simulated class</td>
+</tr>
+<tr>
+<td>Learners' page</td>
+<td><a href="https://djf42.github.io/ecg-live/join.html">djf42.github.io/ecg-live/join.html</a></td>
+<td>Learners, through the QR code</td>
+</tr>
+</tbody>
+</table>
+<div class="keep"><h2 id="s2">Signing in</h2>
+<div class="keep"><p>Open <a href="https://djf42.github.io/ecg-live/admin.html">djf42.github.io/ecg-live/admin.html</a> and sign in with the email address registered as an administrator, using either method:</p>
+<ul>
+<li><strong>Sign in with Google,</strong> if the address is a Google account.</li>
+<li><strong>Email me a link,</strong> for any other address: open the email from RECOVER on the same computer and click the link. Check the spam folder if it doesn't arrive.</li>
+</ul></div>
+<p>The top bar shows who's signed in and whether as owner or administrator. Instructors who try the admin page see that it's for administrators only. <strong>Sign out</strong> is in the top bar.</p>
+<p>The page has three tabs: <strong>Instructors</strong>, <strong>Sessions</strong> and <strong>Research results</strong>.</p>
+<h2 id="s3">Managing instructors</h2>
+<p>The <strong>Instructors</strong> tab lists everyone with access: the owner, administrators and instructors, with who added them and when.</p></div>
+<p><strong>Adding one instructor.</strong> Type their email address, leave the role as <strong>Instructor</strong>, and click <strong>Add</strong>. They can sign in straight away. Use the exact address they'll sign in with: someone who signs in with a personal Gmail address won't get in if you listed their work address. Capitals don't matter.</p>
+<div class="keep"><p><strong>Adding many at once.</strong> Open <strong>Add many instructors at once</strong>:</p>
+<ol>
+<li>Choose a text or CSV file, such as an export of RECOVER's instructor database, or paste addresses into the box. Any layout works: one per line, separated by commas, or an email column among other columns. Every email address in it is picked up.</li>
+<li>Check the preview: how many addresses are new, how many are already listed, and any entries that don't look like email addresses (those are skipped, so fix them in the file if needed).</li>
+<li>Click <strong>Add</strong> (for example, "Add 500 instructors"). Progress shows as each batch is saved.</li>
+</ol></div>
+<p>Importing an updated file later only adds the new addresses; people already listed keep their current role. The import never removes anyone.</p>
+<div class="keep"><p><strong>Removing many at once.</strong> Open <strong>Remove many instructors at once</strong>, for example to remove a batch of instructors whose certification has expired:</p>
+<ol>
+<li>Choose a text or CSV file, or paste addresses into the box. As with adding, any layout works.</li>
+<li>Check the preview: how many addresses match listed instructors and will be removed, how many aren't on the list (ignored), and any administrators in the file. Administrators are never removed in bulk; remove them one at a time.</li>
+<li>Click <strong>Remove</strong> (for example, "Remove 60 instructors") and confirm. Progress shows as each batch is removed.</li>
+</ol></div>
+<p>Removed instructors can't start new sessions; a session one of them is running isn't interrupted. Anyone removed by mistake can simply be added back.</p>
+<p><strong>Removing someone.</strong> Click <strong>Remove</strong> on their row and confirm, for example when an instructor's certification lapses. They can't start new sessions from then on; a session they're running isn't interrupted.</p>
+<p><strong>Administrators.</strong> Only the owner can add or remove administrators: choose <strong>Administrator</strong> in the role list when adding. Administrators see that option grayed out, and can remove instructors but not other administrators.</p>
+<div class="keep"><h2 id="s4">Sessions</h2>
+<p>The <strong>Sessions</strong> tab lists every open session: its join code, when it started, how long it has been open, its current step, and the number of learners.</p></div>
+<div class="keep"><p>A session normally closes itself at the final screen, or when its instructor presses <strong>End session</strong>, and its learners' names are deleted then. A session stays open only if the projector's browser was closed mid-class. Such a session still holds its learners' names, so close it:</p>
+<ul>
+<li><strong>Close</strong> on a row closes that session: learners' phones show "Session ended" and their names are deleted.</li>
+<li><strong>Close sessions older than 6 hours</strong> closes every stale session at once. Stale sessions are highlighted.</li>
+<li><strong>Refresh</strong> updates the list.</li>
+</ul></div>
+<p>You rarely need this tab: an instructor's abandoned session also closes automatically the next time they start a session. Avoid closing a session that's less than an hour or two old, since a class may be running it.</p>
+<div class="keep"><h2 id="s5">Research results</h2>
+<p>The <strong>Research results</strong> tab summarizes every learner's answer to every rhythm across all sessions, to show which rhythms learners find hardest and what they mistake them for.</p></div>
+<p><strong>Filters</strong> at the top narrow everything below: a date range, a role and a country. <strong>Reload</strong> fetches the latest data; <strong>Download CSV</strong> saves the filtered records (date, session, rhythm, answer, correct, time, role, country) for analysis elsewhere.</p>
+<p><strong>The totals:</strong> sessions, learners, rhythm answers, and percent correct overall.</p>
+<div class="keep"><p><strong>By rhythm</strong>, one row per rhythm in the standard set:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>What it shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Learners</td>
+<td>How many learners saw this rhythm</td>
+</tr>
+<tr>
+<td>Correct</td>
+<td>Percent who answered correctly, with a bar</td>
+</tr>
+<tr>
+<td>No answer</td>
+<td>Percent who didn't answer within the 10 seconds</td>
+</tr>
+<tr>
+<td>Median time (correct)</td>
+<td>Typical time to a correct answer</td>
+</tr>
+<tr>
+<td>Most common wrong answer</td>
+<td>The answer most often chosen by those who got it wrong, and its share</td>
+</tr>
+<tr>
+<td>Fast wrong answers (&lt; 4 s)</td>
+<td>Wrong answers given quickly, which suggest a confident misconception rather than a guess; highlighted when more than 15% of answers to that rhythm are fast and wrong</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>What each rhythm is mistaken for</strong> is a grid of each rhythm shown (rows) against each answer chosen (columns), including no answer. The correct cell is green; the deeper the red elsewhere, the more common that mistake. It can reveal patterns, for example how often PEA at 182/min is called pulseless VT, or coarse VF is mistaken for an organized rhythm.</p>
+<p><strong>By role</strong> and <strong>by country</strong> show the number of learners and percent correct for each group. Learners who chose not to give their role or country appear as "Not given."</p>
+<div class="keep"><h2 id="s6">Data, privacy and technical notes</h2>
+<p>Learner names exist only during a session; everything kept long term is anonymous.</p></div>
+<div class="keep"><p><strong>What's stored, in RECOVER's Firebase project:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Data</th>
+<th>Contents</th>
+<th>Kept</th>
+<th>Who can read it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Instructor list (<code>live_staff</code>)</td>
+<td>Email address, role, who added them and when</td>
+<td>Until removed</td>
+<td>Administrators; each person can check their own entry</td>
+</tr>
+<tr>
+<td>Sessions (<code>live_sessions</code>)</td>
+<td>Join code, current step, scoreboard</td>
+<td>Kept, without names once closed</td>
+<td>Signed-in users (no personal data once closed)</td>
+</tr>
+<tr>
+<td>Learners in a session</td>
+<td>Display name, optional role and country</td>
+<td>Deleted when the session ends</td>
+<td>The session's instructor and administrators</td>
+</tr>
+<tr>
+<td>Answers in a session</td>
+<td>Rhythm number, answer, server time of arrival</td>
+<td>Kept, linked only to an anonymous ID</td>
+<td>The session's instructor and administrators</td>
+</tr>
+<tr>
+<td>Research records (<code>live_answers</code>)</td>
+<td>Rhythm, answer, correct or not, answer time, optional role and country; no name</td>
+<td>Kept for research</td>
+<td>Administrators only</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Fair timing.</strong> Each answer is timed on Firebase's own clock, from the moment the answer window opened to the moment the answer arrived. The database refuses answers for the wrong rhythm, second answers, and answers more than 11 seconds after the window opened.</p>
+<p><strong>Hosting.</strong> The pages are on GitHub Pages in the <code>djf42/ecg-live</code> repository. To update a page, upload the new file and do a hard refresh (Cmd+Shift+R on a Mac). The database rules live in Firebase (Firestore → Rules) and cover all of RECOVER's games together.</p>
+<p><strong>Capacity and cost.</strong> On Firebase's free plan, the whole project (all games) allows about 50,000 database reads and 20,000 writes a day: roughly 10 sessions of 60 learners, or 25 to 30 sessions of 20, per day. If several large sessions run on the same day, the daily cap could interrupt a class, so moving to the pay-as-you-go plan with a budget alert is planned once testing is complete; a 60-learner session costs well under a cent.</p>
+<p><strong>GitHub's "secret detected" warning.</strong> GitHub flags the Firebase API key in <code>js/config.js</code>. It's a public identifier that every Firebase web page includes, not a password, and the database rules are what protect the data. Close the alert as a false positive, and don't revoke the key, since all of RECOVER's games share it.</p>
+<h1 class="part">Part 2: Running sessions</h1>
+<p>This part matches the instructor guide, so administrators can support instructors and run sessions themselves.</p>
+<div class="keep"><h2 id="s7">At a glance</h2>
+<p>A session covers 8 rhythms in about 20 to 30 minutes, depending on how long each discussion runs.</p></div>
+<p>Each rhythm starts with a few seconds of chest compressions on the projected screen. When compressions stop, the pulse checker reports, the underlying rhythm appears, and learners have 10 seconds to name it on their phones. Faster correct answers earn more points (100 to 1,000). You then show how the room answered, walk the group through the RECOVER ECG Algorithm one question at a time, reveal the answer, and show the leaderboard.</p>
+<div class="keep"><p><strong>What you need:</strong></p>
+<ul>
+<li>A laptop with an internet connection, connected to a projector or large screen.</li>
+<li>Learners' phones, each with an internet connection (Wi-Fi or mobile data). Learners need no app or account.</li>
+<li>Your instructor sign-in: the email address RECOVER has registered for you.</li>
+<li>Optional: a presentation clicker, which works as the Next button.</li>
+</ul></div>
+<div class="keep"><p><strong>The web addresses:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Address</th>
+<th>Who uses it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Projector page</td>
+<td><a href="https://djf42.github.io/ecg-live">djf42.github.io/ecg-live</a></td>
+<td>You, on the projected laptop</td>
+</tr>
+<tr>
+<td>Practice (demo)</td>
+<td><a href="https://djf42.github.io/ecg-live/?demo">djf42.github.io/ecg-live/?demo</a></td>
+<td>You, to practice with a simulated class</td>
+</tr>
+<tr>
+<td>Learners' page</td>
+<td><a href="https://djf42.github.io/ecg-live/join.html">djf42.github.io/ecg-live/join.html</a></td>
+<td>Learners reach it by scanning the QR code</td>
+</tr>
+</tbody>
+</table></div>
+<div class="keep"><h2 id="s8">Before your lab</h2>
+<p>Practice at least one full session in demo mode before your first lab, and test the room's internet if you can.</p></div>
+<p><strong>1. Make sure you have access.</strong> RECOVER adds certified instructors by email address. If you see "isn't registered as a RECOVER instructor" when you sign in, contact a RECOVER administrator (<a href="mailto:instructors@recoverinitiative.org">instructors@recoverinitiative.org</a>) and give them the exact address you'll sign in with.</p>
+<div class="keep"><p><strong>2. Sign in on the laptop you'll use.</strong> Open the projector page and choose one of:</p>
+<ul>
+<li><strong>Sign in with Google,</strong> if your registered address is a Google account (including many work and university accounts).</li>
+<li><strong>Email me a link,</strong> for any other address. Type your address, open the email from RECOVER on the same laptop, and click the link. If it doesn't arrive within a few minutes, check your spam folder.</li>
+</ul></div>
+<p>You stay signed in on that laptop until you click <strong>Sign out</strong> in the lobby, so signing in the day before saves time.</p>
+<p><strong>3. Practice in demo mode.</strong> Open <a href="https://djf42.github.io/ecg-live/?demo">djf42.github.io/ecg-live/?demo</a>. It runs the whole session with a simulated class of 24, with no sign-in and no phones, so you can rehearse the buttons and the algorithm discussion.</p>
+<p><strong>4. Check the room.</strong></p>
+<ul>
+<li>Connect the laptop to the projector and use <strong>Full screen</strong> (top bar) so the rhythms are as large as possible.</li>
+<li>Check that the projected ECG is easy to read from the back row.</li>
+<li>Venue Wi-Fi can struggle with many phones at once. If it's unreliable, ask learners to use mobile data.</li>
+<li>If possible, join from your own phone as a test learner before the class arrives.</li>
+</ul>
+<div class="keep"><h2 id="s9">Starting a session</h2>
+<p>Signing in on the projector page opens a new session automatically, with its own 4-letter join code.</p></div>
+<p><strong>The lobby</strong> shows a QR code, the join code, and the names of learners as they join. The number of learners also appears in the top bar.</p>
+<p><strong>Learners join</strong> by scanning the QR code with their phone camera. Anyone who can't scan can go to <a href="https://djf42.github.io/ecg-live/join.html">djf42.github.io/ecg-live/join.html</a> and type the code. They then enter a display name for the leaderboard (first name and last initial works well) and, if they wish, their role and country. Role and country are optional and stored without names; they help RECOVER see which rhythms are hardest for different groups.</p>
+<p><strong>When most of the room has joined,</strong> press <strong>Start the first rhythm</strong> (or the space bar, or your clicker).</p>
+<p><strong>Late joiners</strong> can scan the code at any time, even mid-session. They start at 0 points and can answer from the next rhythm on.</p>
+<div class="keep"><h2 id="s10">Running each rhythm</h2>
+<p>Every rhythm follows the same steps, and one button in the top right of the screen (or the space bar, right arrow or a clicker) always moves to the next step.</p></div>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>What the screen shows</th>
+<th>You press</th>
+<th>Learners' phones</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Get ready</td>
+<td>"Get ready" and a blank monitor</td>
+<td><strong>Start rhythm</strong></td>
+<td>"Watch the screen"</td>
+</tr>
+<tr>
+<td>2. Compressions (3 s)</td>
+<td>Compressions, with artifact on the ECG and the capnogram running</td>
+<td>Nothing; it moves on by itself</td>
+<td>"Watch the screen"</td>
+</tr>
+<tr>
+<td>3. Pulse check and answers (10 s)</td>
+<td>Compressions stop, the pulse checker reports, the underlying rhythm appears, and a 10-second countdown runs with a count of answers</td>
+<td>Nothing, or <strong>Close answers</strong> to end early</td>
+<td>Five answer buttons and the countdown; one tap locks the answer</td>
+</tr>
+<tr>
+<td>4. Time's up</td>
+<td>The monitor freezes so the strip can be examined</td>
+<td><strong>Show results</strong></td>
+<td>"Time's up" and their own answer</td>
+</tr>
+<tr>
+<td>5. Results</td>
+<td>"How the room answered" bar chart, with no answer marked</td>
+<td><strong>Start the algorithm</strong></td>
+<td>No change</td>
+</tr>
+<tr>
+<td>6. The algorithm</td>
+<td>The RECOVER ECG Algorithm, one level per press, with the current question shown large</td>
+<td><strong>Next step</strong> after each question is agreed</td>
+<td>No change</td>
+</tr>
+<tr>
+<td>7. The answer</td>
+<td>"Correct:" the rhythm, the correct bar in green, and the teaching point</td>
+<td><strong>Show the answer</strong>, then <strong>Show leaderboard</strong></td>
+<td>Correct or not, points, total and rank</td>
+</tr>
+<tr>
+<td>8. Leaderboard</td>
+<td>The top 10, with points for this rhythm and running totals</td>
+<td><strong>Next rhythm</strong> (after the 8th, <strong>Final results</strong>)</td>
+<td>Their points and rank</td>
+</tr>
+</tbody>
+</table>
+<div class="keep"><p><strong>Good to know:</strong></p>
+<ul>
+<li>Answers close automatically when everyone has answered or the 10 seconds are up.</li>
+<li>The pulse checker takes about a second to report after compressions stop, as in a real pulse check. It's the same for everyone, so it doesn't affect fairness.</li>
+<li>The ECG stays frozen from step 4 through the leaderboard, so you can point out features of the strip during the discussion.</li>
+<li>The button is briefly grayed out just after time's up, while the last answers in transit are counted.</li>
+<li><strong>End session</strong> (top bar) ends the session at any point and goes to the final results.</li>
+</ul></div>
+<div class="keep"><h2 id="s11">Leading the algorithm discussion</h2>
+<p>The point of the algorithm step is for the group to reach the diagnosis together, so let learners do the reasoning before you press Next step.</p></div>
+<ol>
+<li>After <strong>Show results</strong>, comment on the spread of answers without saying which is right, for example: "Most of you said pulseless VT, and a few said PEA. Let's work it out."</li>
+<li>Press <strong>Start the algorithm</strong>. "Palpable pulse?" appears, and the same question shows in large type on the right. Ask the room, and use the pulse checker's report on the scene to settle it.</li>
+<li>When the group agrees, press <strong>Next step</strong>. The answer appears on the branch (in red), the other branch grays out, and the next question appears, outlined in light blue.</li>
+<li>Continue level by level, pointing to the frozen ECG for each question (consistent, repeating complexes? the heart rate box for the rate? a flat line?), until the diagnosis box appears.</li>
+<li>Press <strong>Show the answer</strong> to confirm it and show the teaching point, then <strong>Show leaderboard</strong>.</li>
+</ol>
+<p>If the group reaches a wrong conclusion at a step, ask them to look again at the strip before you press Next step; the algorithm always shows the correct branch.</p>
+<div class="keep"><p><strong>The 8 rhythms</strong> are the same in every session, in this order:</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Rhythm</th>
+<th>Key teaching point</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>PEA, about 84/min</td>
+<td>Looks like normal sinus rhythm, but there's no pulse: PEA. A normal-looking ECG never proves circulation. Non-shockable.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>VF, fine</td>
+<td>No consistent, repeating complexes, and not a flat line: fine VF. Check the gain before calling it asystole. Shockable.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>PEA, about 182/min</td>
+<td>Fast, wide, ventricular-looking complexes, but below 200/min, so by the RECOVER algorithm this is PEA, not pulseless VT. Non-shockable.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Pulseless VT, about 294/min</td>
+<td>Narrower complexes, but still consistent, repeating and well over 200/min with no pulse: pulseless VT. Shockable.</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Asystole</td>
+<td>A flat line with no complexes. Non-shockable.</td>
+</tr>
+<tr>
+<td>6</td>
+<td>VF, coarse</td>
+<td>Looks like repeating complexes at first glance, but the height, shape and spacing keep changing: coarse VF. Shockable.</td>
+</tr>
+<tr>
+<td>7</td>
+<td>ROSC, about 142/min</td>
+<td>Organized rhythm, a palpable pulse, and ETCO₂ rising from 28 to 56 mmHg.</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Pulseless VT, about 216/min</td>
+<td>Wide complexes, each landing on the previous T wave (R on T). Consistent, repeating complexes above 200/min with no pulse: pulseless VT. Shockable.</td>
+</tr>
+</tbody>
+</table></div>
+<p>The rhythm types are interleaved so one rhythm doesn't hint at the next. Rhythms 3 and 6 are designed to be the most challenging, so allow extra time for them.</p>
+<div class="keep"><h2 id="s12">Ending the session</h2>
+<p>After the 8th rhythm's leaderboard, press <strong>Final results</strong>: the session ends, and the screen shows the podium, the top 10 and the hardest rhythms for this group.</p></div>
+<ul>
+<li><strong>The "hardest rhythms" chart</strong> shows the percent of the class who answered each rhythm correctly, lowest first. It's a good prompt for a short closing review.</li>
+<li><strong>Learners' phones</strong> show their final points and rank, then "Session ended."</li>
+<li><strong>Names are deleted</strong> from the database as soon as the final screen appears. The podium on the projector still shows them for the room until you close the page or start a new session.</li>
+<li><strong>To run another group,</strong> press <strong>New session</strong>: you get a fresh code and an empty lobby.</li>
+<li><strong>To stop early,</strong> press <strong>End session</strong> in the top bar at any point.</li>
+<li><strong>On a shared laptop,</strong> click <strong>Sign out</strong> in the lobby when you're done.</li>
+</ul>
+<p><strong>Privacy.</strong> Learners need no account. Their display name is used only for the session's leaderboard and is deleted when the session ends. For research, RECOVER keeps each answer, its timing, and the learner's optional role and country, without names.</p>
+<div class="keep"><h2 id="s13">Troubleshooting</h2>
+<table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"isn't registered as a RECOVER instructor"</td>
+<td>You signed in with an address RECOVER doesn't have. Click <strong>Sign out and use another account</strong> and use your registered address, or email <a href="mailto:instructors@recoverinitiative.org">instructors@recoverinitiative.org</a> to have the one you use added.</td>
+</tr>
+<tr>
+<td>The sign-in email doesn't arrive</td>
+<td>Check your spam folder, then request another link. Open the link on the same laptop you requested it from. Google sign-in is quicker if your address is a Google account.</td>
+</tr>
+<tr>
+<td>A learner's QR scan doesn't work</td>
+<td>They can go to <a href="https://djf42.github.io/ecg-live/join.html">djf42.github.io/ecg-live/join.html</a> and type the 4-letter code shown on the screen.</td>
+</tr>
+<tr>
+<td>"No open session with the code…"</td>
+<td>The code was mistyped, or the session has ended. Check the code on the screen.</td>
+</tr>
+<tr>
+<td>A learner's phone shows "Time's up" or "arrived after the window closed"</td>
+<td>Their tap reached the server after the 10 seconds (plus a 1-second grace). Usually a slow connection; suggest switching between Wi-Fi and mobile data.</td>
+</tr>
+<tr>
+<td>A learner's phone looks stuck</td>
+<td>Ask them to reload the page. They rejoin automatically with their points intact.</td>
+</tr>
+<tr>
+<td>The projector page was closed by accident</td>
+<td>Reopen it and sign in. A new session starts with a new code, and the earlier one closes. Learners need to scan the new code, and scores start again from 0.</td>
+</tr>
+<tr>
+<td>The bar chart shows fewer answers than learners</td>
+<td>Some learners didn't answer in time; they score 0 for that rhythm.</td>
+</tr>
+<tr>
+<td>Phones stop responding for everyone</td>
+<td>Check the venue's internet. Learners on mobile data can carry on.</td>
+</tr>
+</tbody>
+</table></div></main>
+<footer><em>Learn to lead when it matters most.</em><span>© 2026 RECOVER Initiative</span></footer>
+</div></body></html>

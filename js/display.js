@@ -514,7 +514,7 @@
     StaffAuth.watch((user, role) => {
       const gate = $("signin");
       if (!user) { if (started) return location.reload(); gate.classList.remove("hidden"); hideViews(); StaffAuth.panel(gate); return; }
-      if (!role) { gate.classList.remove("hidden"); hideViews(); StaffAuth.panel(gate, { blocked: (user.email || "This account") + " isn't registered as a RECOVER instructor. Ask a RECOVER administrator to add this email address." }); return; }
+      if (!role) { gate.classList.remove("hidden"); hideViews(); StaffAuth.panel(gate, { blocked: (user.email || "This account") + " isn't registered as a RECOVER instructor. Email instructors@recoverinitiative.org to have this address added." }); return; }
       gate.classList.add("hidden");
       $("staffWho").textContent = user.email;
       if (!started) {
