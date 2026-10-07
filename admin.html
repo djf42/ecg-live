@@ -63,6 +63,8 @@
   .bulk textarea{width:100%;box-sizing:border-box;font:inherit;font-size:15px;padding:10px;border:2px solid var(--mist);border-radius:var(--radius-md);margin-top:8px}
   .bulkline{margin:6px 0;font-weight:600}
   .bulkbad{font-size:14px;color:var(--red-deep);word-break:break-all}
+  .bulklist{font-size:14px;color:var(--ink-muted);word-break:break-all}
+  .btn.danger{background:var(--red-deep);border-color:var(--red-deep)}
   @media (max-width:820px){.kpis{grid-template-columns:1fr 1fr}.cols{grid-template-columns:1fr}}
 </style>
 </head>
@@ -96,6 +98,14 @@
             <textarea id="bulkText" rows="6" placeholder="pat@clinic.org&#10;lee@vetschool.edu, sam@hospital.com"></textarea>
             <div class="addform"><button class="btn ghost" type="button" id="bulkCheck">Check the list</button><button class="btn" type="button" id="bulkAdd" disabled>Add instructors</button></div>
             <div id="bulkReport"></div>
+          </details>
+          <details class="bulk" id="bulkRm">
+            <summary><b>Remove many instructors at once</b> <span class="muted">(text or CSV file, or paste)</span></summary>
+            <p class="note">For example, a list of instructors whose certification has expired. Upload a file or paste addresses below; any layout works. Only listed instructors are removed: addresses that aren't on the list are ignored, and administrators are skipped (remove them one at a time).</p>
+            <div class="addform"><input type="file" id="rmFile" accept=".txt,.csv,text/plain,text/csv"></div>
+            <textarea id="rmText" rows="6" placeholder="expired1@clinic.org&#10;expired2@vetschool.edu"></textarea>
+            <div class="addform"><button class="btn ghost" type="button" id="rmCheck">Check the list</button><button class="btn danger" type="button" id="rmGo" disabled>Remove instructors</button></div>
+            <div id="rmReport"></div>
           </details>
           <table><thead><tr><th>Email</th><th>Role</th><th>Added by</th><th>Added</th><th></th></tr></thead><tbody id="staffRows"></tbody></table>
           <p class="note">Instructors can start sessions from the projector page. Administrators can also manage instructors, close sessions and see the research results. Only the owner can add or remove administrators. People sign in with Google or an emailed link using the exact address listed here.</p>
@@ -152,6 +162,6 @@
   <script src="js/config.js?v=2026-10-06b"></script>
   <script src="js/live-rhythms.js?v=2026-10-06e"></script>
   <script src="js/staff-auth.js?v=2026-10-06b"></script>
-  <script src="js/admin.js?v=2026-10-06d"></script>
+  <script src="js/admin.js?v=2026-10-07a"></script>
 </body>
 </html>

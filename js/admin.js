@@ -48,6 +48,7 @@
       ((APP_CONFIG.adminEmails) || []).forEach(e => rows.push({ email: e.toLowerCase(), role: "owner" }));
       qs.forEach(d => rows.push(Object.assign({ email: d.id }, d.data())));
       staffNow = new Set(qs.docs.map(d => d.id));
+      staffRoles = {}; qs.docs.forEach(d => staffRoles[d.id] = d.data().role);
       const order = { owner: 0, admin: 1, instructor: 2 };
       rows.sort((a, b) => order[a.role] - order[b.role] || a.email.localeCompare(b.email));
       const tb = $("staffRows"); tb.replaceChildren();
@@ -83,7 +84,7 @@
   }
 
   // ---------- bulk import ----------
-  let bulkNew = [], staffNow = new Set();
+  let bulkNew = [], staffNow = new Set(), staffRoles = {}, rmList = [];
   const EMAIL_RE = /[A-Za-z0-9._%+'-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
   function bulkCheck() {
     const raw = $("bulkText").value, rep = $("bulkReport"); rep.replaceChildren();
@@ -112,6 +113,41 @@
     }
     prog.textContent = "Done: added " + done + " instructor" + (done === 1 ? "" : "s") + "." + (failed.length ? " " + failed.length + " couldn't be added; check them and try again." : "");
     bulkNew = []; btn.textContent = "Add instructors"; $("bulkCheck").disabled = false;
+  }
+
+  // ---------- bulk removal (instructors only) ----------
+  function parseEmails(raw) {
+    const found = [...new Set((raw.match(EMAIL_RE) || []).map(e => e.toLowerCase().replace(/^[.'-]+|[.'-]+$/g, "")))];
+    const bad = [...new Set(raw.split(/[\s,;"<>()\[\]]+/).filter(tok => tok.includes("@") && !/^[A-Za-z0-9._%+'-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(tok)))];
+    return { found, bad };
+  }
+  function rmCheck() {
+    const { found, bad } = parseEmails($("rmText").value), rep = $("rmReport"); rep.replaceChildren();
+    const owners = (APP_CONFIG.adminEmails || []).map(e => e.toLowerCase());
+    rmList = found.filter(e => staffRoles[e] === "instructor");
+    const admins = found.filter(e => staffRoles[e] === "admin" || owners.includes(e));
+    const notListed = found.filter(e => !staffRoles[e] && !owners.includes(e));
+    rep.append(el("p", "bulkline", found.length + " addresses found: " + rmList.length + " listed instructor" + (rmList.length === 1 ? "" : "s") + " to remove, " + notListed.length + " not on the list" + (admins.length ? ", " + admins.length + " administrator" + (admins.length > 1 ? "s" : "") + " skipped" : "") + "."));
+    if (rmList.length) rep.append(el("p", "bulklist", "To remove: " + rmList.slice(0, 40).join(", ") + (rmList.length > 40 ? ", and " + (rmList.length - 40) + " more" : "")));
+    if (admins.length) rep.append(el("p", "bulklist", "Administrators aren't removed in bulk: " + admins.join(", ") + "."));
+    if (bad.length) rep.append(el("p", "bulkline", bad.length + " entries don't look like email addresses and will be ignored:"), el("p", "bulkbad", bad.slice(0, 50).join("  ·  ")));
+    $("rmGo").disabled = !rmList.length;
+    $("rmGo").textContent = rmList.length ? "Remove " + rmList.length + " instructor" + (rmList.length > 1 ? "s" : "") : "Remove instructors";
+  }
+  async function rmGo() {
+    const list = rmList.slice(); if (!list.length) return;
+    if (!confirm("Remove " + list.length + " instructor" + (list.length > 1 ? "s" : "") + "? They'll no longer be able to start sessions. You can add them back later if needed.")) return;
+    const rep = $("rmReport"), btn = $("rmGo"); btn.disabled = true; $("rmCheck").disabled = true;
+    const prog = el("p", "bulkline"); rep.appendChild(prog);
+    let done = 0, failed = [];
+    for (let i = 0; i < list.length; i += 200) {
+      const chunk = list.slice(i, i + 200), b = db.batch();
+      chunk.forEach(e => b.delete(db.collection("live_staff").doc(e)));
+      try { await b.commit(); done += chunk.length; } catch (err) { failed = failed.concat(chunk); }
+      prog.textContent = "Removed " + done + " of " + list.length + "…";
+    }
+    prog.textContent = "Done: removed " + done + " instructor" + (done === 1 ? "" : "s") + "." + (failed.length ? " " + failed.length + " couldn't be removed; check them and try again." : "");
+    rmList = []; btn.textContent = "Remove instructors"; $("rmCheck").disabled = false;
   }
 
   // ---------- open sessions ----------
@@ -239,6 +275,10 @@
     $("bulkCheck").addEventListener("click", bulkCheck);
     $("bulkAdd").addEventListener("click", bulkAdd);
     $("bulkText").addEventListener("input", () => { $("bulkAdd").disabled = true; });
+    $("rmCheck").addEventListener("click", rmCheck);
+    $("rmGo").addEventListener("click", rmGo);
+    $("rmText").addEventListener("input", () => { $("rmGo").disabled = true; });
+    $("rmFile").addEventListener("change", e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { $("rmText").value = r.result; rmCheck(); }; r.readAsText(f); e.target.value = ""; });
     $("bulkFile").addEventListener("change", e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { $("bulkText").value = r.result; bulkCheck(); }; r.readAsText(f); e.target.value = ""; });   // reset so choosing the same file again still works
     $("signOut").addEventListener("click", () => StaffAuth.signOut());
     ["fRole", "fCountry", "fFrom", "fTo"].forEach(id => $(id).addEventListener("change", renderResults));
