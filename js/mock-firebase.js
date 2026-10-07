@@ -23,6 +23,7 @@
   function checkRules(path, data, db) {
     if (/^live_sessions\/[^/]+$/.test(path) && !db[path] && !["owner", "admin", "instructor"].includes(staffRole(db))) return "only listed instructors can start sessions";
     if (/^live_staff\//.test(path)) { const r = staffRole(db); if (!(r === "owner" || (r === "admin" && data.role === "instructor"))) return "not allowed to change staff"; }
+    if (/^live_sessions\/[^/]+\/players\/[^/]+$/.test(path) && db[path]) return "player already joined (set on an existing document counts as an update)";
     const m = path.match(/^live_sessions\/([^/]+)\/answers\/([^/]+)$/);
     if (!m) return null;
     const ses = db["live_sessions/" + m[1]];
