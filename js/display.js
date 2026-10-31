@@ -267,7 +267,11 @@
       box.append(el("p", "eyebrow", "Rhythm " + (S.i + 1) + " of " + R.length), el("h2", null, "Get ready"),
                  el("p", "big muted", "The answer buttons appear on your phone when compressions stop."));
     } else if (p === "compress") {
-      box.append(el("p", "eyebrow", "Rhythm " + (S.i + 1) + " of " + R.length), el("h2", null, "Compressions"), el("p", "big muted", "Watch the monitor."));
+      // a large countdown to the end of the cycle, so the room knows when the pulse check is coming
+      const cd = el("div", "countdown"); cd.id = "cycleCount"; cd.textContent = COMPRESS_S;
+      const bar = el("div", "cbar"); const fill = el("i"); fill.id = "cycleBar"; bar.appendChild(fill);
+      box.append(el("p", "eyebrow", "Rhythm " + (S.i + 1) + " of " + R.length + " · Compressions"), el("p", "cyclelabel", "Pulse check in"), cd, bar, el("p", "big muted", "Watch the monitor."));
+      tickCycle();
     } else if (p === "answer" || p === "closed") {
       const n = rd.answers.length, tot = S.players.length;
       const cd = el("div", "countdown"); cd.id = "countdown"; cd.textContent = p === "answer" ? ANSWER_S : "0";
@@ -314,6 +318,14 @@
       list.appendChild(li);
     });
     return list;
+  }
+  function tickCycle() {
+    if (S.phase !== "compress") return;
+    const left = Math.max(0, COMPRESS_S - (now() - S.t0));
+    const c = $("cycleCount"), b = $("cycleBar");
+    if (c) { c.textContent = Math.max(1, Math.ceil(left)); c.classList.toggle("low", left <= 1); }
+    if (b) b.style.width = (left / COMPRESS_S * 100) + "%";
+    requestAnimationFrame(tickCycle);
   }
   function tickCountdown() {
     if (S.phase !== "answer") return;
