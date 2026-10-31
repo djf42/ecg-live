@@ -93,7 +93,7 @@
     $("who").textContent = me.name;
     if (unsub) unsub();
     keepAwake();
-    unsub = sref.onSnapshot(snap => { reconnects = 0; render(snap.data() || {}); }, err => {
+    unsub = sref.onSnapshot(snap => { reconnects = 0; show(snap.data() || {}); }, err => {
       // the connection dropped (often after the phone slept): reconnect quietly rather than giving up
       console.warn("session listener", err);
       if (unsub) { unsub(); unsub = null; }
@@ -125,6 +125,44 @@
       try { return await fn(); }
       catch (err) { if (n >= tries || err.code === "permission-denied") throw err; await new Promise(r => setTimeout(r, 700 * n)); }
     }
+  }
+
+  // ---------- backup check while waiting for the answer window ----------
+  // On some phones and networks the live update from Firebase can stall for several seconds, so the
+  // answer buttons would only appear once the window had closed. While the phone is waiting for the
+  // window to open (Get ready, Compressions), it also asks the server directly every 2.5 seconds,
+  // and every second once compressions are under way, so a stalled update can't hold the buttons back.
+  let shownKey = "", lastData = null, pollTimer = null, polling = false;
+  const keyOf = d => (d.status || "") + "|" + (d.phase || "") + "|" + d.i;
+  const ORDER = ["lobby", "ready", "compress", "answer", "closed", "results", "algo", "answer2", "board", "final", "ended"];
+  const stepOf = d => d.status === "closed" ? [1e9, 99] : [d.i == null ? -1 : d.i, ORDER.indexOf(d.phase)];
+  function show(d) {
+    // a late update from a stalled connection must not take the phone back to an earlier step
+    if (lastData) {
+      const [i0, p0] = stepOf(lastData), [i1, p1] = stepOf(d);
+      if (i1 < i0 || (i1 === i0 && p1 < p0)) return;
+    }
+    lastData = d; shownKey = keyOf(d);
+    render(d);
+    schedulePoll(d);
+  }
+  function schedulePoll(d) {
+    clearTimeout(pollTimer); pollTimer = null;
+    const waiting = d.status !== "closed" && (d.phase === "ready" || d.phase === "compress");
+    if (!waiting || ended) return;
+    pollTimer = setTimeout(pollOnce, d.phase === "compress" ? 1000 : 2500);
+  }
+  async function pollOnce() {
+    pollTimer = null;
+    if (polling || !sref || ended) return;
+    polling = true;
+    try {
+      const snap = await sref.get({ source: "server" });
+      const d = snap.data() || {};
+      if (keyOf(d) !== shownKey) { console.info("caught up from the server:", keyOf(d)); show(d); }
+      else schedulePoll(lastData);
+    } catch (e) { schedulePoll(lastData || {}); }
+    finally { polling = false; }
   }
 
   function render(d) {
