@@ -446,11 +446,11 @@
 
   // draw the teammates once, then move them between spots (they walk over when the team rotates)
   // The bag stays on the endotracheal tube at the patient's head (drawn in the scene, #bag); only the people move.
-  // Whoever is ventilating squeezes it with one hand and steadies the tube connector with the other.
+  // Whoever is ventilating grips its middle with one hand and steadies the tube connector with the other.
   function armsFor(pose, m) {
     if (pose !== "bag") return Figures.armsFor(pose, m);
     const lk = Figures.lookOf(m);
-    return Figures.arm(m, lk, -23, 80, -50, 120, -62, 166) + Figures.arm(m, lk, 23, 80, 8, 128, -24, 178);
+    return Figures.arm(m, lk, -23, 80, -50, 124, -62, 177) + Figures.arm(m, lk, 23, 80, 8, 128, -24, 178);
   }
   // draw the teammates once, then move them between spots: they walk over with their arms down,
   // and take up their new task (bag, chest, pulse) when they arrive
