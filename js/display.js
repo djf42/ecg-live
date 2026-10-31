@@ -160,7 +160,7 @@
     S.stopReal = now(); round().start = now();
     go("answer");
     Backend.open();
-    setTimeout(() => { S.bubble = true; renderScene(); Voice.pulseCheck(); }, 1200);
+    setTimeout(() => { S.bubble = true; renderScene(); }, 1200);
   }
   function closeAnswers() {
     if (S.phase !== "answer") return;
@@ -267,11 +267,7 @@
       box.append(el("p", "eyebrow", "Rhythm " + (S.i + 1) + " of " + R.length), el("h2", null, "Get ready"),
                  el("p", "big muted", "The answer buttons appear on your phone when compressions stop."));
     } else if (p === "compress") {
-      // a large countdown to the end of the cycle, so the room knows when the pulse check is coming
-      const cd = el("div", "countdown"); cd.id = "cycleCount"; cd.textContent = COMPRESS_S;
-      const bar = el("div", "cbar"); const fill = el("i"); fill.id = "cycleBar"; bar.appendChild(fill);
-      box.append(el("p", "eyebrow", "Rhythm " + (S.i + 1) + " of " + R.length + " · Compressions"), el("p", "cyclelabel", "Pulse check in"), cd, bar, el("p", "big muted", "Watch the monitor."));
-      tickCycle();
+      box.append(el("p", "eyebrow", "Rhythm " + (S.i + 1) + " of " + R.length), el("h2", null, "Compressions"), el("p", "big muted", "Watch the monitor."));
     } else if (p === "answer" || p === "closed") {
       const n = rd.answers.length, tot = S.players.length;
       const cd = el("div", "countdown"); cd.id = "countdown"; cd.textContent = p === "answer" ? ANSWER_S : "0";
@@ -318,14 +314,6 @@
       list.appendChild(li);
     });
     return list;
-  }
-  function tickCycle() {
-    if (S.phase !== "compress") return;
-    const left = Math.max(0, COMPRESS_S - (now() - S.t0));
-    const c = $("cycleCount"), b = $("cycleBar");
-    if (c) { c.textContent = Math.max(1, Math.ceil(left)); c.classList.toggle("low", left <= 1); }
-    if (b) b.style.width = (left / COMPRESS_S * 100) + "%";
-    requestAnimationFrame(tickCycle);
   }
   function tickCountdown() {
     if (S.phase !== "answer") return;
@@ -408,27 +396,6 @@
       return cur.cat ? "" : cur.lines.join(" ");
     }
     return { svg, question, PATH };
-  })();
-
-  // ---------- voice: the pulse checker says what the speech bubble says ----------
-  // Trial: only the first rhythm (no pulse) has a recording so far. More clips go in voices/ and in CLIPS.
-  const Voice = (() => {
-    const CLIPS = { 0: "voices/Priya_NoPulse_01.mp3" };   // rhythm index -> clip
-    const cache = {};
-    let unlocked = false;
-    const clip = src => cache[src] || (cache[src] = Object.assign(new Audio(src), { preload: "auto" }));
-    Object.values(CLIPS).forEach(clip);
-    return {
-      // some browsers (Safari) only allow sound after a click, so the first button press "unlocks" audio
-      unlock() {
-        if (unlocked) return; unlocked = true;
-        Object.values(cache).forEach(a => { a.muted = true; a.play().then(() => { a.pause(); a.currentTime = 0; a.muted = false; }).catch(() => { a.muted = false; }); });
-      },
-      pulseCheck() {
-        const src = S && CLIPS[S.i]; if (!src) return;
-        const a = clip(src); a.muted = false; a.currentTime = 0; a.play().catch(err => console.warn("voice", err));
-      }
-    };
   })();
 
   // ---------- scene ----------
@@ -539,12 +506,12 @@
   document.addEventListener("DOMContentLoaded", () => {
     $("signOutLink").addEventListener("click", e => { e.preventDefault(); if (S.phase === "lobby" || confirm("Sign out and end this session?")) { Backend.end(); StaffAuth.signOut(); } });
     // buttons, keys and the monitor loop are needed in demo mode too, so set them up first
-    $("primaryBtn").addEventListener("click", () => { Voice.unlock(); primary(); });
+    $("primaryBtn").addEventListener("click", primary);
     $("endBtn").addEventListener("click", () => { if (S.phase !== "lobby" && confirm("End this session?")) { if (S.phase === "answer") closeAnswers(); go("final"); Backend.end(); } });
     $("fsBtn").addEventListener("click", () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); });
     document.addEventListener("keydown", e => {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.closest(".algo-zoom")) return;
-      if (e.key === " " || e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); Voice.unlock(); if (!$("primaryBtn").disabled) primary(); }
+      if (e.key === " " || e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); if (!$("primaryBtn").disabled) primary(); }
     });
     // redraw the monitor whenever its size changes (window resize, or the algorithm replacing the scene)
     const ro = new ResizeObserver(() => { ecgM = null; });
