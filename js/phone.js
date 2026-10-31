@@ -18,9 +18,9 @@
     try {
       if (!firebase.apps.length) firebase.initializeApp(APP_CONFIG.firebase);
       const auth = firebase.auth(); db = firebase.firestore();
-      if (!auth.currentUser) await auth.signInAnonymously();
+      if (!auth.currentUser) await retry(() => auth.signInAnonymously());
       uid = auth.currentUser.uid;
-    } catch (err) { return showError("Couldn't connect. Check your internet connection and reload. (" + (err.message || err) + ")"); }
+    } catch (err) { return showError("Couldn't connect. Check your internet connection, then tap Try again. (" + (err.message || err) + ")"); }
     const code = (new URLSearchParams(location.search).get("code") || "").toUpperCase().replace(/[^A-Z]/g, "");
     if (code) findSession(code); else showCodeForm();
   }
@@ -33,10 +33,12 @@
   async function findSession(code) {
     screen("loading");
     try {
-      const qs = await db.collection("live_sessions").where("code", "==", code).where("status", "==", "open").limit(1).get();
+      const qs = await retry(() => db.collection("live_sessions").where("code", "==", code).where("status", "==", "open").limit(1).get());
       if (qs.empty) return showCodeForm("No open session with the code " + code + ". Check the code on the screen.");
       sref = qs.docs[0].ref;
-      const mine = await sref.collection("players").doc(uid).get();
+      // keep the code in the address, so reloading the page (or the phone reloading it after sleep) rejoins
+      try { const u = new URL(location.href); if (u.searchParams.get("code") !== code) { u.searchParams.set("code", code); history.replaceState(null, "", u); } } catch (e) { /* ignore */ }
+      const mine = await retry(() => sref.collection("players").doc(uid).get());
       if (mine.exists) { me = mine.data(); return listen(); }      // rejoining after a reload
       showNameForm();
     } catch (err) { showError("Couldn't find the session. (" + (err.message || err) + ")"); }
@@ -90,7 +92,39 @@
     screen("play");
     $("who").textContent = me.name;
     if (unsub) unsub();
-    unsub = sref.onSnapshot(snap => render(snap.data() || {}), err => showError("Lost the connection to the session. (" + (err.message || err) + ")"));
+    keepAwake();
+    unsub = sref.onSnapshot(snap => { reconnects = 0; render(snap.data() || {}); }, err => {
+      // the connection dropped (often after the phone slept): reconnect quietly rather than giving up
+      console.warn("session listener", err);
+      if (unsub) { unsub(); unsub = null; }
+      if (++reconnects > 20) return showError("Lost the connection to the session. Tap Try again to rejoin.");
+      $("play").replaceChildren(el("div", "pulse"), el("div", "big", "Reconnecting…"), el("p", "lead muted", "Check your internet connection."));
+      setTimeout(() => { if (!unsub && !ended) listen(); }, Math.min(1000 * reconnects, 5000));
+    });
+  }
+
+  // ---------- keep the phone awake and recover after sleep ----------
+  let wakeLock = null, reconnects = 0, ended = false;
+  async function keepAwake() {
+    // Screen Wake Lock: stops the screen dimming and locking while the session runs (iOS 16.4+, Android Chrome)
+    if (ended || wakeLock || !("wakeLock" in navigator) || document.visibilityState !== "visible") return;
+    try { wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", () => { wakeLock = null; }); }
+    catch (e) { wakeLock = null; }
+  }
+  function letSleep() { ended = true; if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; } }
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible" || !sref || !me || ended) return;
+    keepAwake();          // the lock is dropped whenever the page is hidden, so take it again
+    listen();             // and pick up the session again with a fresh connection
+  });
+  // some browsers only grant the lock after a tap, so try again on any tap
+  document.addEventListener("click", () => { if (sref && me) keepAwake(); }, true);
+
+  async function retry(fn, tries = 4) {
+    for (let n = 1; ; n++) {
+      try { return await fn(); }
+      catch (err) { if (n >= tries || err.code === "permission-denied") throw err; await new Promise(r => setTimeout(r, 700 * n)); }
+    }
   }
 
   function render(d) {
@@ -138,6 +172,7 @@
       box.append(el("div", "big", phase === "ended" ? "Session ended" : "Final results"));
       if (mineRow) box.append(el("p", "total", mineRow.total.toLocaleString() + " points"), el("p", "rank", "You finished " + ordinal(mineRow.rank) + " of " + players));
       box.append(el("p", "lead muted", "Thanks for playing. Your name has been removed from the session."));
+      letSleep();   // the session is over: let the phone sleep again
       if (phase === "ended" && unsub) { unsub(); unsub = null; }
     }
   }

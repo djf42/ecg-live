@@ -160,7 +160,7 @@
     S.stopReal = now(); round().start = now();
     go("answer");
     Backend.open();
-    setTimeout(() => { S.bubble = true; renderScene(); }, 1200);
+    setTimeout(() => { S.bubble = true; renderScene(); Voice.pulseCheck(); }, 1200);
   }
   function closeAnswers() {
     if (S.phase !== "answer") return;
@@ -398,6 +398,27 @@
     return { svg, question, PATH };
   })();
 
+  // ---------- voice: the pulse checker says what the speech bubble says ----------
+  // Trial: only the first rhythm (no pulse) has a recording so far. More clips go in voices/ and in CLIPS.
+  const Voice = (() => {
+    const CLIPS = { 0: "voices/Priya_NoPulse_01.mp3" };   // rhythm index -> clip
+    const cache = {};
+    let unlocked = false;
+    const clip = src => cache[src] || (cache[src] = Object.assign(new Audio(src), { preload: "auto" }));
+    Object.values(CLIPS).forEach(clip);
+    return {
+      // some browsers (Safari) only allow sound after a click, so the first button press "unlocks" audio
+      unlock() {
+        if (unlocked) return; unlocked = true;
+        Object.values(cache).forEach(a => { a.muted = true; a.play().then(() => { a.pause(); a.currentTime = 0; a.muted = false; }).catch(() => { a.muted = false; }); });
+      },
+      pulseCheck() {
+        const src = S && CLIPS[S.i]; if (!src) return;
+        const a = clip(src); a.muted = false; a.currentTime = 0; a.play().catch(err => console.warn("voice", err));
+      }
+    };
+  })();
+
   // ---------- scene ----------
   function renderScene() {
     const comp = S && S.phase === "compress";
@@ -505,6 +526,18 @@
   // ---------- start ----------
   document.addEventListener("DOMContentLoaded", () => {
     $("signOutLink").addEventListener("click", e => { e.preventDefault(); if (S.phase === "lobby" || confirm("Sign out and end this session?")) { Backend.end(); StaffAuth.signOut(); } });
+    // buttons, keys and the monitor loop are needed in demo mode too, so set them up first
+    $("primaryBtn").addEventListener("click", () => { Voice.unlock(); primary(); });
+    $("endBtn").addEventListener("click", () => { if (S.phase !== "lobby" && confirm("End this session?")) { if (S.phase === "answer") closeAnswers(); go("final"); Backend.end(); } });
+    $("fsBtn").addEventListener("click", () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); });
+    document.addEventListener("keydown", e => {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.closest(".algo-zoom")) return;
+      if (e.key === " " || e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); Voice.unlock(); if (!$("primaryBtn").disabled) primary(); }
+    });
+    // redraw the monitor whenever its size changes (window resize, or the algorithm replacing the scene)
+    const ro = new ResizeObserver(() => { ecgM = null; });
+    ro.observe($("ecg")); ro.observe($("co2"));
+    requestAnimationFrame(draw);
     newSession();
     if (!LIVE) { document.querySelector(".staffline").classList.add("hidden"); render(); Backend.start(); return; }
     // live mode: only a listed instructor (or administrator) can start a session
@@ -522,17 +555,6 @@
         Promise.resolve(Backend.start()).catch(err => { console.error(err); $("protoNote").textContent = "Couldn't start the session: " + (err.message || err) + ". Reload to try again."; });
       }
     });
-    $("primaryBtn").addEventListener("click", primary);
-    $("endBtn").addEventListener("click", () => { if (S.phase !== "lobby" && confirm("End this session?")) { if (S.phase === "answer") closeAnswers(); go("final"); Backend.end(); } });
-    $("fsBtn").addEventListener("click", () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); });
-    document.addEventListener("keydown", e => {
-      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.closest(".algo-zoom")) return;
-      if (e.key === " " || e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); if (!$("primaryBtn").disabled) primary(); }
-    });
-    // redraw the monitor whenever its size changes (window resize, or the algorithm replacing the scene)
-    const ro = new ResizeObserver(() => { ecgM = null; });
-    ro.observe($("ecg")); ro.observe($("co2"));
-    requestAnimationFrame(draw);
   });
   window.LiveDisplay = { get state() { return S; }, primary, live: LIVE };
 })();
