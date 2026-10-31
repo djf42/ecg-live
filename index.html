@@ -72,7 +72,8 @@ body::before,body::after{display:none}
 .chest{transform-box:fill-box;transform-origin:50% 100%}
 #bag{transform-box:fill-box;transform-origin:center}
 #bag.squeeze{animation:bagsq 1s ease-in-out}
-@keyframes bagsq{0%{transform:scale(1)}30%{transform:scale(.6)}100%{transform:scale(1)}}
+/* the bag flattens top to bottom around its midline, so its outlet stays on the tube */
+@keyframes bagsq{0%{transform:scaleY(1)}30%{transform:scaleY(.45)}100%{transform:scaleY(1)}}
 .bubble{opacity:0;transform:scale(.6);transform-box:fill-box;transform-origin:50% 100%;transition:opacity .18s,transform .22s cubic-bezier(.3,1.6,.6,1)}
 .bubble.show{opacity:1;transform:scale(1)}
 .mon{background:var(--navy);border-radius:var(--radius-md);overflow:hidden;flex:1;min-height:0;display:flex;flex-direction:column}
@@ -339,6 +340,6 @@ body::before,body::after{display:none}
 <script src="js/live-rhythms.js?v=2026-10-06e"></script>
 <script src="js/staff-auth.js?v=2026-10-06b"></script>
 <script src="js/figures.js?v=2026-11-01b"></script>
-<script src="js/display.js?v=2026-11-01b"></script>
+<script src="js/display.js?v=2026-11-01c"></script>
 </body>
 </html>
