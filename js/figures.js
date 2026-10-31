@@ -77,5 +77,5 @@
 
 
 
-  window.Figures = { figureLegs, figureUpper, armsFor, lookOf };
+  window.Figures = { figureLegs, figureUpper, armsFor, lookOf, arm };
 })();

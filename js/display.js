@@ -418,7 +418,7 @@
     { id: "alex", shirt: "#84d1f5", voice: "blue" },    // starts on compressions
     { id: "priya", shirt: "#f2b134", voice: "green" }   // starts on the pulse (her clips are labeled Green)
   ];
-  const SPOTS = [{ key: "head", x: 372, pose: "ventilate" }, { key: "chest", x: 466, pose: "chest" }, { key: "pulse", x: 598, pose: "palpate" }];
+  const SPOTS = [{ key: "head", x: 330, pose: "bag" }, { key: "chest", x: 466, pose: "chest" }, { key: "pulse", x: 598, pose: "palpate" }];
   const spotOf = j => SPOTS[(j + Math.max(0, S ? S.i : 0)) % SPOTS.length];
   const pulseChecker = () => TEAM.find((m, j) => spotOf(j).key === "pulse");
 
@@ -445,10 +445,22 @@
   })();
 
   // draw the teammates once, then move them between spots (they walk over when the team rotates)
+  // The bag stays on the endotracheal tube at the patient's head (drawn in the scene, #bag); only the people move.
+  // Whoever is ventilating squeezes it with one hand and steadies the tube connector with the other.
+  function armsFor(pose, m) {
+    if (pose !== "bag") return Figures.armsFor(pose, m);
+    const lk = Figures.lookOf(m);
+    return Figures.arm(m, lk, -23, 80, -50, 120, -62, 166) + Figures.arm(m, lk, 23, 80, 8, 128, -24, 178);
+  }
+  // draw the teammates once, then move them between spots: they walk over with their arms down,
+  // and take up their new task (bag, chest, pulse) when they arrive
+  const WALK_MS = 1200;
   let teamBuilt = false;
+  function setPose(arms, pose, m) { if (arms.dataset.pose !== pose) { arms.dataset.pose = pose; arms.innerHTML = armsFor(pose, m); } }
   function placeTeam() {
     const back = $("layerBack"), front = $("layerFront"); if (!back || !window.Figures) return;
-    if (!teamBuilt) {
+    const first = !teamBuilt;
+    if (first) {
       teamBuilt = true;
       TEAM.forEach(m => {
         const lk = Figures.lookOf(m);
@@ -459,11 +471,14 @@
     TEAM.forEach((m, j) => {
       const spot = spotOf(j), tf = "translate(" + spot.x + "px, 0px)";
       const gb = $("mb-" + m.id), gf = $("mf-" + m.id), arms = gf.querySelector(".arms");
-      if (gb.style.transform !== tf) { gb.style.transform = tf; gf.style.transform = tf; }
-      if (arms.dataset.pose !== spot.pose) {
-        arms.dataset.pose = spot.pose;
-        arms.innerHTML = Figures.armsFor(spot.pose, m).replace('<g class="bag">', '<g class="bag" id="bag">');
-      }
+      if (gb.style.transform !== tf) {
+        gb.style.transform = tf; gf.style.transform = tf;
+        if (!first) {
+          setPose(arms, "idle", m);
+          clearTimeout(arms._arrive);
+          arms._arrive = setTimeout(() => setPose(arms, spotOf(j).pose, m), WALK_MS);
+        } else setPose(arms, spot.pose, m);
+      } else if (!arms._arrive || arms.dataset.pose !== "idle") setPose(arms, spot.pose, m);
       const comp = spot.key === "chest";
       gb.querySelector(".body").classList.toggle("pusher", comp); arms.classList.toggle("pusher", comp);
     });
