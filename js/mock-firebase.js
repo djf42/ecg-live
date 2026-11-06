@@ -101,6 +101,7 @@
   if (sessionStorage.getItem("mockStaff")) { const e = sessionStorage.getItem("mockStaff"); AUTH.currentUser = { uid: "g_" + e.replace(/[^a-z0-9]/g, ""), email: e, isAnonymous: false, emailVerified: true }; }
   const DB = { collection: n => colRef(n), doc: p => docRef(p), batch };
   function GoogleAuthProvider() {}
+  GoogleAuthProvider.prototype.setCustomParameters = function () { return this; };
   window.firebase = { apps: [], initializeApp() { this.apps.push({}); }, auth: Object.assign(() => AUTH, { GoogleAuthProvider }), firestore: Object.assign(() => DB, { FieldValue: { serverTimestamp: () => SERVER } }) };
   window.MockFS = { reset() { localStorage.removeItem(KEY); }, dump: load };
 })();

@@ -24,7 +24,9 @@ window.StaffAuth = (function () {
     localStorage.removeItem("staffEmail");
     history.replaceState(null, "", location.pathname);
   }
-  const google = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+  // always show Google's account chooser: otherwise Google silently reuses the account last picked
+  // in this browser, so someone who chose the wrong account could never switch to the right one
+  const google = () => { const p = new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({ prompt: "select_account" }); return auth.signInWithPopup(p); };
   function emailLink(email) {
     localStorage.setItem("staffEmail", email);
     return auth.sendSignInLinkToEmail(email, { url: location.origin + location.pathname, handleCodeInApp: true });
