@@ -132,6 +132,10 @@
   // answer buttons would only appear once the window had closed. While the phone is waiting for the
   // window to open (Get ready, Compressions), it also asks the server directly every 2.5 seconds,
   // and every second once compressions are under way, so a stalled update can't hold the buttons back.
+  // The check uses a plain web request to Firestore's REST API: the SDK's own "get from server" travels
+  // over the same live connection, so it stalls along with it (which is why the first version of this
+  // check didn't help in real classes). The REST reply also carries the server's clock, so a phone that
+  // learns late that the window opened counts down only the time that's actually left.
   let shownKey = "", lastData = null, pollTimer = null, polling = false;
   const keyOf = d => (d.status || "") + "|" + (d.phase || "") + "|" + d.i;
   const ORDER = ["lobby", "ready", "compress", "answer", "closed", "results", "algo", "answer2", "board", "final", "ended"];
@@ -152,13 +156,42 @@
     if (!waiting || ended) return;
     pollTimer = setTimeout(pollOnce, d.phase === "compress" ? 1000 : 2500);
   }
+  let serverOffset = null;     // server clock minus this phone's clock, in ms (from REST replies)
+  // Firestore REST values -> plain JavaScript (only the types the session document uses)
+  function fromValue(v) {
+    if (!v) return null;
+    if ("stringValue" in v) return v.stringValue;
+    if ("integerValue" in v) return Number(v.integerValue);
+    if ("doubleValue" in v) return v.doubleValue;
+    if ("booleanValue" in v) return v.booleanValue;
+    if ("nullValue" in v) return null;
+    if ("timestampValue" in v) { const ms = Date.parse(v.timestampValue); return { toMillis: () => ms }; }
+    if ("arrayValue" in v) return (v.arrayValue.values || []).map(fromValue);
+    if ("mapValue" in v) return fromFields(v.mapValue.fields || {});
+    return null;
+  }
+  function fromFields(f) { const o = {}; for (const k in f) o[k] = fromValue(f[k]); return o; }
+  async function readSessionDirect() {
+    if (window.MockFS) { const snap = await sref.get(); return snap.data() || {}; }   // testing only
+    const pid = APP_CONFIG.firebase.projectId, base = "projects/" + pid + "/databases/(default)/documents";
+    const token = await firebase.auth().currentUser.getIdToken();
+    const t0 = Date.now();
+    const res = await fetch("https://firestore.googleapis.com/v1/" + base + ":batchGet", {
+      method: "POST", cache: "no-store",
+      headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+      body: JSON.stringify({ documents: [base + "/live_sessions/" + sref.id] })
+    });
+    if (!res.ok) throw new Error("REST " + res.status);
+    const item = (await res.json())[0] || {};
+    if (item.readTime) serverOffset = Date.parse(item.readTime) - (t0 + Date.now()) / 2;
+    return item.found ? fromFields(item.found.fields || {}) : {};
+  }
   async function pollOnce() {
     pollTimer = null;
     if (polling || !sref || ended) return;
     polling = true;
     try {
-      const snap = await sref.get({ source: "server" });
-      const d = snap.data() || {};
+      const d = await readSessionDirect();
       if (keyOf(d) !== shownKey) { console.info("caught up from the server:", keyOf(d)); show(d); }
       else schedulePoll(lastData);
     } catch (e) { schedulePoll(lastData || {}); }
@@ -179,7 +212,11 @@
       box.append(el("div", "pulse"), el("div", "big", "Watch the screen"), el("p", "lead", phase === "compress" ? "Compressions are underway. The answer buttons appear when they stop." : "Get ready for rhythm " + (k + 1) + "."));
     } else if (phase === "answer") {
       if (answered[k]) return lockedView(box, answered[k]);
-      if (openedRound !== k) { openedRound = k; openedAt = Date.now(); }
+      if (openedRound !== k) {
+        openedRound = k; openedAt = Date.now();
+        const start = d.roundStartAt && d.roundStartAt.toMillis ? d.roundStartAt.toMillis() : null;
+        if (start && serverOffset != null) openedAt = Math.min(Date.now(), Math.max(Date.now() - ANSWER_S * 1000, start - serverOffset));
+      }
       const left = Math.max(0, ANSWER_S - (Date.now() - openedAt) / 1000);
       const cd = el("div", "count", String(Math.ceil(left))); cd.id = "count";
       box.append(el("p", "ask", "What's the rhythm?"), cd);
